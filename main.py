@@ -245,6 +245,7 @@ def gas_station_list():
 # -----------------------------
 def main(page: ft.Page):
 
+    #название окна приложения
     page.title = "FuelMix"
 
     #page.theme_mode = ft.ThemeMode.DARK
