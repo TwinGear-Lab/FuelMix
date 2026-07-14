@@ -18,6 +18,9 @@ if __name__ == '__main__':
 
     print_hi('dm2')
 
+
+    print("dm3")
+
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
 #sjdasda
 #kflsjfle
