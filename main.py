@@ -1,3 +1,5 @@
+import os
+
 import flet as ft
 
 from pages import homePage
@@ -50,4 +52,6 @@ def main(page: ft.Page):
 
     change_page(0)
 
-ft.run(main)
+
+ft.run(main,
+    assets_dir="images",)
