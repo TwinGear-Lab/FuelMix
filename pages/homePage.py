@@ -1,16 +1,21 @@
 import flet as ft
 
+
 def view(page: ft.Page):
-
-    return ft.Column(
+    """
+    return ft.Container(
         controls=[
-
             ft.Text(
-                "Главная",
+                "Fuel",
                 size=30,
                 weight="bold",
             ),
-
-
+            ft.Text(
+                "Mix",
+                size=30,
+                weight="bold",
+            ),
         ]
     )
+    """
+    pass

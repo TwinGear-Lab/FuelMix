@@ -10,20 +10,18 @@ from widgets.navigationPanel import navigation_panel
 
 
 def main(page: ft.Page):
-
     page.title = "FuelMix"
     page.theme_mode = ft.ThemeMode.DARK
-    page.padding = 15
-    page.scroll = ft.ScrollMode.AUTO
+    page.padding = 0
+    page.spacing = 0
 
+    content = ft.Container(expand=True)
 
-    # контейнер для текущей страницы
-    content = ft.Container(
-        expand=True
-    )
+    page.navigation_bar = navigation_panel(page, 0)
 
+    page.add(content)
 
-    def change_page(index):
+    def change_page(index: int):
 
         if index == 0:
             content.content = homePage.view(page)
@@ -35,27 +33,21 @@ def main(page: ft.Page):
             content.content = fuelSettingsUserPage.view(page)
 
         elif index == 3:
+            # удаляем старый WebView
+            content.content = None
+            page.update()
+
+            # создаем новый
             content.content = mapFuelPage.view(page)
 
         elif index == 4:
-            #content.content = userPage.view(page)
-            pass
+            content.content = userPage.view(page)
 
-
-        page.navigation_bar = navigation_panel(page, index)
-
+        page.navigation_bar.selected_index = index
         page.update()
 
-
-    # функция доступна navigationPanel
     page.change_page = change_page
 
-
-    page.add(content)
-
-
-    # стартовая страница
     change_page(0)
 
-
-ft.app(target=main)
+ft.run(main)
