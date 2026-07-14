@@ -1,4 +1,14 @@
 import flet as ft
+import os
+import shutil
+import time
+import tkinter as tk
+from tkinter import filedialog
+import threading
+
+from flet.controls import page
+
+from widgets import navigationPanel
 
 BG = "#101418"
 CARD = "#1A1F24"
@@ -13,6 +23,77 @@ countLiters = 0
 countRON = 0
 
 
+def clear_avatars_folder():
+    """Удаляет все файлы из папки avatars"""
+    try:
+        avatars_dir = "avatars"
+        if os.path.exists(avatars_dir):
+            for file in os.listdir(avatars_dir):
+                file_path = os.path.join(avatars_dir, file)
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+                    print(f"Удален старый аватар: {file}")
+    except Exception as e:
+        print(f"Ошибка при очистке папки аватаров: {e}")
+
+
+def save_avatar_image(file_path):
+    """Сохраняет изображение аватара в папку приложения с уникальным именем"""
+    try:
+        avatars_dir = "avatars"
+        if not os.path.exists(avatars_dir):
+            os.makedirs(avatars_dir)
+
+        # Получаем расширение файла
+        ext = os.path.splitext(file_path)[1]
+        # Создаем уникальное имя с timestamp
+        timestamp = int(time.time())
+        new_filename = f"avatar_{timestamp}{ext}"
+        new_path = os.path.join(avatars_dir, new_filename)
+
+        # Копируем файл
+        shutil.copy2(file_path, new_path)
+        print(f"Аватар сохранен: {new_filename}")
+        return new_path
+    except Exception as e:
+        print(f"Ошибка при сохранении аватара: {e}")
+        return None
+
+
+def get_avatar_from_storage():
+    """Получает последний сохраненный аватар"""
+    try:
+        avatars_dir = "avatars"
+        if os.path.exists(avatars_dir):
+            # Получаем все файлы аватаров
+            files = [f for f in os.listdir(avatars_dir) if f.startswith("avatar_")]
+            if files:
+                # Сортируем по времени создания (по имени файла)
+                files.sort(reverse=True)
+                latest_file = files[0]
+                print(f"Загружен аватар: {latest_file}")
+                return os.path.join(avatars_dir, latest_file)
+    except Exception as e:
+        print(f"Ошибка при загрузке аватара: {e}")
+    return None
+
+
+def select_file():
+    """Открывает диалог выбора файла через tkinter"""
+    root = tk.Tk()
+    root.withdraw()
+    root.attributes('-topmost', True)
+
+    file_path = filedialog.askopenfilename(
+        title="Выберите изображение для аватара",
+        filetypes=[
+            ("Изображения", "*.png *.jpg *.jpeg *.gif *.bmp *.webp"),
+            ("Все файлы", "*.*")
+        ]
+    )
+    root.destroy()
+    return file_path
+
 
 def view(page: ft.Page):
     # Создаем изменяемые тексты
@@ -21,7 +102,7 @@ def view(page: ft.Page):
         color=TEXT2,
         size=12,
     )
-    
+
     # Для статистики создаем отдельные Text объекты
     changes_display = ft.Text(
         str(countChange),
@@ -29,37 +110,21 @@ def view(page: ft.Page):
         weight="bold",
         color=TEXT,
     )
-    
+
     liters_display = ft.Text(
         str(countLiters),
         size=22,
         weight="bold",
         color=TEXT,
     )
-    
+
     ron_display = ft.Text(
         str(countRON),
         size=22,
         weight="bold",
         color=TEXT,
     )
-    
-    """
-        def statostics_update(e):
-        global countChange, countLiters, countRON
-        # Обновляем значения
-        countChange += 1
-        countLiters += 10
-        countRON = 92.5
-        
-        # Обновляем тексты
-        changes_display.value = str(countChange)
-        liters_display.value = str(countLiters)
-        ron_display.value = str(countRON)
-    
-        page.update()
-    """
-    
+
     def messageChange(e):
         global setMessage
         if setMessage == "Включены":
@@ -69,9 +134,8 @@ def view(page: ft.Page):
         notification_text.value = setMessage
         page.update()
         print(f"Уведомления теперь: {setMessage}")
-    
+
     def on_stations_click(e):
-        
         page.snack_bar = ft.SnackBar(
             ft.Text("Статистика обновлена!"),
             bgcolor=GREEN,
@@ -79,7 +143,7 @@ def view(page: ft.Page):
         page.snack_bar.open = True
         page.update()
         print(f"Статистика: {countChange}, {countLiters}, {countRON}")
-    
+
     def on_theme_click(e):
         print("Нажата тема")
         page.snack_bar = ft.SnackBar(
@@ -88,31 +152,20 @@ def view(page: ft.Page):
         )
         page.snack_bar.open = True
         page.update()
-    
-    def on_avatar_click(e):
-        print("Аватар нажат")
-        page.snack_bar = ft.SnackBar(
-            ft.Text("Клик по аватару"),
-            bgcolor=GREEN,
-        )
-        page.snack_bar.open = True
-        page.update()
-    
+
     def reset_values(e):
         global countChange, countLiters, countRON, setMessage
-        
-        # Сбрасываем все значения
+
         countChange = 0
         countLiters = 0
         countRON = 0
         setMessage = "Включены"
-        
-        # Обновляем все тексты
+
         changes_display.value = str(countChange)
         liters_display.value = str(countLiters)
         ron_display.value = str(countRON)
         notification_text.value = setMessage
-        
+
         page.snack_bar = ft.SnackBar(
             ft.Text("Все значения обнулены!"),
             bgcolor=GREEN,
@@ -120,23 +173,149 @@ def view(page: ft.Page):
         page.snack_bar.open = True
         page.update()
         print("Значения обнулены")
-    
-    # Создаем аватар с обработчиком через GestureDetector
-    avatar = ft.CircleAvatar(
-        radius=45,
-        bgcolor=GREEN,
-        content=ft.Icon(
-            ft.Icons.PERSON,
-            size=50,
-            color=BG,
-        ),
-    )
-    
+
+    # ===== ФУНКЦИЯ ДЛЯ ЗАГРУЗКИ АВАТАРА =====
+    def on_avatar_click(e):
+        """Открывает диалог выбора файла через tkinter"""
+        print("Аватар нажат - открываем выбор файла")
+
+        page.snack_bar = ft.SnackBar(
+            ft.Text("Открывается диалог выбора файла..."),
+            bgcolor=BLUE,
+        )
+        page.snack_bar.open = True
+        page.update()
+
+        file_path = select_file()
+
+        if file_path:
+            valid_extensions = ('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp')
+            if file_path.lower().endswith(valid_extensions):
+                # Очищаем старые аватары
+                clear_avatars_folder()
+
+                # Сохраняем новый аватар с уникальным именем
+                saved_path = save_avatar_image(file_path)
+                if saved_path:
+                    # Проверяем, есть ли у аватара страница
+                    try:
+                        # Пытаемся обновить аватар
+                        avatar.content = ft.Image(
+                            src=saved_path,
+                            width=100,
+                            height=100,
+                            fit="cover",
+                        )
+                        avatar.bgcolor = None
+
+                        # Проверяем, привязан ли аватар к странице
+                        if hasattr(avatar, 'page') and avatar.page is not None:
+                            avatar.update()
+                            page.update()
+                        else:
+                            # Если аватар потерял связь со страницей, просто перезагружаем страницу
+                            page.snack_bar = ft.SnackBar(
+                                ft.Text("Аватар обновлен! Перезагружаем страницу..."),
+                                bgcolor=BLUE,
+                            )
+                            page.snack_bar.open = True
+                            page.update()
+
+                            # Перезагружаем страницу через 1 секунду
+                            def reload_page():
+                                time.sleep(1)
+                                # Переключаем на главную и обратно
+                                page.change_page(0)
+                                time.sleep(0.1)
+                                page.change_page(4)
+
+                            thread = threading.Thread(target=reload_page, daemon=True)
+                            thread.start()
+                            return
+
+                        page.snack_bar = ft.SnackBar(
+                            ft.Text("Аватар успешно обновлен!"),
+                            bgcolor=GREEN,
+                        )
+                        page.snack_bar.open = True
+                        page.update()
+                    except Exception as e:
+                        print(f"Ошибка при обновлении аватара: {e}")
+                        # Если ошибка, просто перезагружаем страницу
+                        page.snack_bar = ft.SnackBar(
+                            ft.Text("Аватар обновлен! Перезагружаем страницу..."),
+                            bgcolor=BLUE,
+                        )
+                        page.snack_bar.open = True
+                        page.update()
+
+                        def reload_page():
+                            time.sleep(1)
+                            page.change_page(0)
+                            time.sleep(0.1)
+                            page.change_page(4)
+
+                        thread = threading.Thread(target=reload_page, daemon=True)
+                        thread.start()
+                else:
+                    page.snack_bar = ft.SnackBar(
+                        ft.Text("Ошибка при сохранении аватара!"),
+                        bgcolor=ft.Colors.RED,
+                    )
+                    page.snack_bar.open = True
+                    page.update()
+            else:
+                page.snack_bar = ft.SnackBar(
+                    ft.Text("Пожалуйста, выберите файл изображения!"),
+                    bgcolor=ft.Colors.RED,
+                )
+                page.snack_bar.open = True
+                page.update()
+        else:
+            page.snack_bar = ft.SnackBar(
+                ft.Text("Выбор файла отменен"),
+                bgcolor=TEXT2,
+            )
+            page.snack_bar.open = True
+            page.update()
+
+    # ===== КОНЕЦ ФУНКЦИИ =====
+
+    # Загружаем сохраненный аватар
+    avatar_image_path = get_avatar_from_storage()
+
+    # Создаем аватар
+    if avatar_image_path and os.path.exists(avatar_image_path):
+        avatar = ft.Container(
+            bgcolor=None,
+            width=100,
+            height=100,
+            border_radius=50,
+            content=ft.Image(
+                src=avatar_image_path,
+                width=100,
+                height=100,
+                fit="cover",
+            )
+        )
+    else:
+        avatar = ft.Container(
+            bgcolor=GREEN,
+            width=100,
+            height=100,
+            border_radius=50,
+            content=ft.Icon(
+                ft.Icons.PERSON,
+                size=50,
+                color=BG,
+            )
+        )
+
     avatar_gesture = ft.GestureDetector(
         content=avatar,
         on_tap=on_avatar_click,
     )
-    
+
     # Создаем кнопки настроек
     notification_item = ft.Container(
         padding=15,
@@ -167,7 +346,7 @@ def view(page: ft.Page):
             ],
         ),
     )
-    
+
     stations_item = ft.Container(
         padding=15,
         on_click=on_stations_click,
@@ -201,7 +380,7 @@ def view(page: ft.Page):
             ],
         ),
     )
-    
+
     theme_item = ft.Container(
         padding=15,
         on_click=on_theme_click,
@@ -235,7 +414,7 @@ def view(page: ft.Page):
             ],
         ),
     )
-    
+
     return ft.Column(
         scroll=ft.ScrollMode.AUTO,
         controls=[
@@ -246,7 +425,7 @@ def view(page: ft.Page):
                 weight="bold",
                 color=TEXT,
             ),
-            
+
             # Карточка пользователя
             ft.Container(
                 bgcolor=CARD,
@@ -270,7 +449,7 @@ def view(page: ft.Page):
                     ],
                 ),
             ),
-            
+
             # Статистика
             ft.Text(
                 "Статистика",
@@ -278,7 +457,7 @@ def view(page: ft.Page):
                 weight="bold",
                 color=TEXT,
             ),
-            
+
             ft.Row(
                 spacing=10,
                 controls=[
@@ -294,7 +473,7 @@ def view(page: ft.Page):
                                     ft.Icons.SYNC,
                                     color=GREEN,
                                 ),
-                                changes_display,  # Используем объект Text напрямую
+                                changes_display,
                                 ft.Text(
                                     "Смешиваний",
                                     size=12,
@@ -315,7 +494,7 @@ def view(page: ft.Page):
                                     ft.Icons.LOCAL_GAS_STATION,
                                     color=GREEN,
                                 ),
-                                liters_display,  # Используем объект Text напрямую
+                                liters_display,
                                 ft.Text(
                                     "Литров",
                                     size=12,
@@ -336,7 +515,7 @@ def view(page: ft.Page):
                                     ft.Icons.SPEED,
                                     color=GREEN,
                                 ),
-                                ron_display,  # Используем объект Text напрямую
+                                ron_display,
                                 ft.Text(
                                     "Средний RON",
                                     size=12,
@@ -347,7 +526,7 @@ def view(page: ft.Page):
                     ),
                 ],
             ),
-            
+
             # Настройки
             ft.Text(
                 "Настройки",
@@ -355,7 +534,7 @@ def view(page: ft.Page):
                 weight="bold",
                 color=TEXT,
             ),
-            
+
             ft.Container(
                 bgcolor=CARD,
                 border_radius=15,
@@ -367,12 +546,12 @@ def view(page: ft.Page):
                     ]
                 ),
             ),
-            
+
             # Кнопка выхода
             ft.FilledButton(
                 "Обнулить значения",
                 icon=ft.Icons.RESTORE,
-                on_click=reset_values,  # Используем функцию сброса
+                on_click=reset_values,
                 width=float('inf'),
             ),
         ],

@@ -36,7 +36,7 @@ def main(page: ft.Page):
             # удаляем старый WebView
             content.content = None
             page.update()
-
+    
             # создаем новый
             content.content = mapFuelPage.view(page)
 
