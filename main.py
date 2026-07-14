@@ -16,6 +16,8 @@ if __name__ == '__main__':
 
     print_hi('pv')
 
+    print_hi('dm2')
+
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
 #sjdasda
 #kflsjfle
