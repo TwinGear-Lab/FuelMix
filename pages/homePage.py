@@ -2,20 +2,24 @@ import flet as ft
 
 
 def view(page: ft.Page):
-    """
+
     return ft.Container(
-        controls=[
-            ft.Text(
-                "Fuel",
-                size=30,
-                weight="bold",
-            ),
-            ft.Text(
-                "Mix",
-                size=30,
-                weight="bold",
-            ),
-        ]
+        padding=10,
+        content=ft.Row(
+            spacing=0,
+            controls=[
+                ft.Text(
+                    "Fuel",
+                    size=30,
+                    weight=ft.FontWeight.BOLD,
+                    color=ft.Colors.WHITE,
+                ),
+                ft.Text(
+                    "Mix",
+                    size=30,
+                    weight=ft.FontWeight.BOLD,
+                    color=ft.Colors.GREEN,
+                ),
+            ],
+        ),
     )
-    """
-    pass
