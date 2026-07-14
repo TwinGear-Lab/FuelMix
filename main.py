@@ -1,23 +1,26 @@
-# This is a sample Python script.
+import flet as ft
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+def main(page: ft.Page):
+    page.title = "Flet counter example"
+    page.vertical_alignment = ft.MainAxisAlignment.CENTER
 
+    input = ft.TextField(value="0", text_align=ft.TextAlign.RIGHT, width=100)
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+    def minus_click(e):
+        input.value = str(int(input.value) - 1)
 
+    def plus_click(e):
+        input.value = str(int(input.value) + 1)
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-    print_hi('dm')
+    page.add(
+        ft.Row(
+            alignment=ft.MainAxisAlignment.CENTER,
+            controls=[
+                ft.IconButton(ft.Icons.REMOVE, on_click=minus_click),
+                input,
+                ft.IconButton(ft.Icons.ADD, on_click=plus_click),
+            ],
+        )
+    )
 
-    print_hi('pv')
-
-    print_hi('dm2')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
-#sjdasda
-#kflsjfle
+ft.run(main)
