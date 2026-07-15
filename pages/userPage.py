@@ -2,7 +2,7 @@ import flet as ft
 import os
 import shutil
 import time
-import threading
+import asyncio
 from theme import get_theme_name, get_theme_colors
 
 GREEN = ft.Colors.GREEN
@@ -13,9 +13,10 @@ countChange = 0
 countLiters = 0
 countRON = 0
 
-# Глобальная переменная для хранения текущего аватара
+# Глобальные переменные
 current_avatar = None
 avatar_gesture_ref = None
+file_picker = None
 
 
 def clear_avatars_folder():
@@ -69,7 +70,7 @@ def get_avatar_from_storage():
 
 
 def view(page: ft.Page):
-    global current_avatar, avatar_gesture_ref
+    global current_avatar, avatar_gesture_ref, file_picker
 
     # Получаем цвета для текущей темы
     colors = get_theme_colors()
@@ -158,60 +159,78 @@ def view(page: ft.Page):
         page.update()
         print("Значения обнулены")
 
-    # ===== ФУНКЦИЯ ДЛЯ ВЫБОРА ФАЙЛА (КРОССПЛАТФОРМЕННАЯ) =====
+    # ===== ФУНКЦИЯ ДЛЯ ВЫБОРА ФАЙЛА (КРОСС-ПЛАТФОРМЕННАЯ) =====
     def on_avatar_click(e):
-        """Открывает диалог выбора файла (кросс-платформенный)"""
+        """Открывает диалог выбора файла (работает на всех платформах)"""
+        global file_picker
         print("Аватар нажат - открываем выбор файла")
 
-        # Создаем FilePicker
-        file_picker = ft.FilePicker()
+        # Создаем FilePicker если его еще нет
+        if file_picker is None:
+            file_picker = ft.FilePicker()
 
-        # Обработчик выбора файла (для разных версий Flet)
-        def on_picked(e):
-            if e.files:
-                selected_file = e.files[0]
-                process_selected_file(selected_file.path)
-            else:
-                page.snack_bar = ft.SnackBar(
-                    ft.Text("Выбор файла отменен"),
-                    bgcolor=ft.Colors.GREY,
-                )
-                page.snack_bar.open = True
-                page.update()
+            # Обработчик выбора файла
+            def on_picked(e: ft.FilePickerResultEvent):
+                if e.files:
+                    selected_file = e.files[0]
+                    process_selected_file(selected_file.path)
+                else:
+                    page.snack_bar = ft.SnackBar(
+                        ft.Text("Выбор файла отменен"),
+                        bgcolor=ft.Colors.GREY,
+                    )
+                    page.snack_bar.open = True
+                    page.update()
 
-        # Привязываем обработчик (для совместимости с разными версиями)
-        try:
-            # Для новых версий Flet
+            # Привязываем обработчик
             file_picker.on_result = on_picked
-        except:
-            # Для старых версий Flet
-            file_picker.on_picked = on_picked
 
-        page.overlay.append(file_picker)
-        page.update()
+            page.overlay.append(file_picker)
+            page.update()
 
-        # Открываем диалог выбора файла
-        try:
-            file_picker.pick_files(
-                allow_multiple=False,
-                allowed_extensions=["png", "jpg", "jpeg", "gif", "bmp", "webp"],
-                dialog_title="Выберите изображение для аватара"
-            )
-        except Exception as e:
-            print(f"Ошибка при открытии диалога: {e}")
-            # Альтернативный способ для некоторых версий
+        # Открываем диалог выбора файла (используем asyncio для вызова асинхронного метода)
+        async def pick_files_async():
             try:
-                file_picker.pick_files(
-                    allow_multiple=False,
-                    allowed_extensions=["png", "jpg", "jpeg", "gif", "bmp", "webp"],
-                )
-            except:
+                # Пробуем разные методы для совместимости
+                if hasattr(file_picker, 'pick_files_async'):
+                    await file_picker.pick_files_async(
+                        allow_multiple=False,
+                        allowed_extensions=["png", "jpg", "jpeg", "gif", "bmp", "webp"],
+                        dialog_title="Выберите изображение для аватара"
+                    )
+                else:
+                    # Для старых версий Flet
+                    file_picker.pick_files(
+                        allow_multiple=False,
+                        allowed_extensions=["png", "jpg", "jpeg", "gif", "bmp", "webp"],
+                        dialog_title="Выберите изображение для аватара"
+                    )
+            except Exception as e:
+                print(f"Ошибка при открытии диалога: {e}")
                 page.snack_bar = ft.SnackBar(
                     ft.Text("Ошибка открытия диалога выбора файла"),
                     bgcolor=ft.Colors.RED,
                 )
                 page.snack_bar.open = True
                 page.update()
+
+        # Запускаем асинхронную функцию
+        try:
+            # Пробуем использовать asyncio
+            asyncio.create_task(pick_files_async())
+        except:
+            # Если asyncio не работает, пробуем другой способ
+            try:
+                # Для некоторых версий Flet
+                page.run_task(pick_files_async)
+            except:
+                # Самый простой способ - запустить в отдельном потоке
+                def run_async():
+                    asyncio.run(pick_files_async())
+
+                import threading
+                thread = threading.Thread(target=run_async, daemon=True)
+                thread.start()
 
     def process_selected_file(file_path):
         """Обрабатывает выбранный файл"""
