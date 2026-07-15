@@ -1,42 +1,19 @@
 import flet as ft
+from flet import value
+import json
 
-#топливо в баке
-#выбранная заправка
-str_selectAGS_Tank = ft.TextField()
-#тип топлива
-str_typeFuelTank = ft.TextField()
-#объем топлива
-num_volumeFuel = ft.TextField()
 
-#топливо для заправки 1
-#выбранная заправка
-str_selectAGS_One = ft.TextField()
-#тип топлива
-str_typeFuelOne = ft.TextField()
-#объем топлива
-num_volumeOne = ft.TextField()
-
-#топливо для заправки 2
-#выбранная заправка
-str_selectAGS_Two = ft.TextField()
-#тип топлива
-str_typeFuelTwo = ft.TextField()
-#объем топлива
-num_volumeTwo = ft.TextField()
-
-#результат топлива
-#октановое число
-num_resultOctan = ft.TextField()
-#литры
-num_resultFuel = ft.TextField()
 
 def view(page: ft.Page):
-    gas_stations_rf = [
-        "Лукойл", "Роснефть", "Газпромнефть", "Газпром", "Татнефть",
-        "Башнефть", "Teboil", "Shell", "Нефтьмагистраль", "Трасса",
-        "IRBIS", "TNK BP", "ННК", "Сургутнефтегаз", "Русойл",
-        "Славнефть", "Сибнефть"
-    ]
+
+    gas_stations_rf = []
+
+
+    with open("dataAGS.json", "r", encoding="utf-8") as file:
+        data = json.load(file)
+        gas_station = list(data.keys())
+        for i in range(len(gas_station)):
+            gas_stations_rf.append(gas_station[i])
 
     # Создаем поля ввода с привязкой к переменным
     # Топливо в баке
