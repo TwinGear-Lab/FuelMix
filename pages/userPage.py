@@ -2,13 +2,7 @@ import flet as ft
 import os
 import shutil
 import time
-import tkinter as tk
-from tkinter import filedialog
 import threading
-
-from flet.controls import page
-
-from widgets import navigationPanel
 
 BG = "#101418"
 CARD = "#1A1F24"
@@ -78,24 +72,12 @@ def get_avatar_from_storage():
     return None
 
 
-def select_file():
-    """Открывает диалог выбора файла через tkinter"""
-    root = tk.Tk()
-    root.withdraw()
-    root.attributes('-topmost', True)
-
-    file_path = filedialog.askopenfilename(
-        title="Выберите изображение для аватара",
-        filetypes=[
-            ("Изображения", "*.png *.jpg *.jpeg *.gif *.bmp *.webp"),
-            ("Все файлы", "*.*")
-        ]
-    )
-    root.destroy()
-    return file_path
-
-
 def view(page: ft.Page):
+    # Создаем FilePicker для выбора файлов
+    file_picker = ft.FilePicker()
+    page.overlay.append(file_picker)
+    page.update()
+
     # Создаем изменяемые тексты
     notification_text = ft.Text(
         setMessage,
@@ -176,7 +158,7 @@ def view(page: ft.Page):
 
     # ===== ФУНКЦИЯ ДЛЯ ЗАГРУЗКИ АВАТАРА =====
     def on_avatar_click(e):
-        """Открывает диалог выбора файла через tkinter"""
+        """Открывает диалог выбора файла через flet FilePicker"""
         print("Аватар нажат - открываем выбор файла")
 
         page.snack_bar = ft.SnackBar(
@@ -186,9 +168,18 @@ def view(page: ft.Page):
         page.snack_bar.open = True
         page.update()
 
-        file_path = select_file()
+        # Открываем диалог выбора файлов для изображений
+        file_picker.pick_files(
+            dialog_title="Выберите изображение для аватара",
+            file_type=ft.FilePickerFileType.IMAGE,
+            allow_multiple=False,
+        )
 
-        if file_path:
+    # Обработчик выбора файла
+    def on_file_selected(e: ft.FilePickerResultEvent):
+        if e.files:
+            file_path = e.files[0].path
+
             valid_extensions = ('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp')
             if file_path.lower().endswith(valid_extensions):
                 # Очищаем старые аватары
@@ -197,9 +188,9 @@ def view(page: ft.Page):
                 # Сохраняем новый аватар с уникальным именем
                 saved_path = save_avatar_image(file_path)
                 if saved_path:
-                    # Проверяем, есть ли у аватара страница
+                    # Обновляем аватар
                     try:
-                        # Пытаемся обновить аватар
+                        # Обновляем содержимое аватара
                         avatar.content = ft.Image(
                             src=saved_path,
                             width=100,
@@ -208,30 +199,9 @@ def view(page: ft.Page):
                         )
                         avatar.bgcolor = None
 
-                        # Проверяем, привязан ли аватар к странице
-                        if hasattr(avatar, 'page') and avatar.page is not None:
-                            avatar.update()
-                            page.update()
-                        else:
-                            # Если аватар потерял связь со страницей, просто перезагружаем страницу
-                            page.snack_bar = ft.SnackBar(
-                                ft.Text("Аватар обновлен! Перезагружаем страницу..."),
-                                bgcolor=BLUE,
-                            )
-                            page.snack_bar.open = True
-                            page.update()
-
-                            # Перезагружаем страницу через 1 секунду
-                            def reload_page():
-                                time.sleep(1)
-                                # Переключаем на главную и обратно
-                                page.change_page(0)
-                                time.sleep(0.1)
-                                page.change_page(4)
-
-                            thread = threading.Thread(target=reload_page, daemon=True)
-                            thread.start()
-                            return
+                        # Принудительно обновляем
+                        avatar.update()
+                        page.update()
 
                         page.snack_bar = ft.SnackBar(
                             ft.Text("Аватар успешно обновлен!"),
@@ -239,9 +209,9 @@ def view(page: ft.Page):
                         )
                         page.snack_bar.open = True
                         page.update()
-                    except Exception as e:
-                        print(f"Ошибка при обновлении аватара: {e}")
-                        # Если ошибка, просто перезагружаем страницу
+                    except Exception as err:
+                        print(f"Ошибка при обновлении аватара: {err}")
+                        # Если ошибка, перезагружаем страницу
                         page.snack_bar = ft.SnackBar(
                             ft.Text("Аватар обновлен! Перезагружаем страницу..."),
                             bgcolor=BLUE,
@@ -251,6 +221,7 @@ def view(page: ft.Page):
 
                         def reload_page():
                             time.sleep(1)
+                            # Переключаем на главную и обратно
                             page.change_page(0)
                             time.sleep(0.1)
                             page.change_page(4)
@@ -279,7 +250,8 @@ def view(page: ft.Page):
             page.snack_bar.open = True
             page.update()
 
-    # ===== КОНЕЦ ФУНКЦИИ =====
+    # Привязываем обработчик выбора файла
+    file_picker.on_result = on_file_selected
 
     # Загружаем сохраненный аватар
     avatar_image_path = get_avatar_from_storage()
