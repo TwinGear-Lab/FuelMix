@@ -1,6 +1,5 @@
 import flet as ft
 
-
 def view(page: ft.Page):
     gas_stations_rf = [
         "Лукойл", "Роснефть", "Газпромнефть", "Газпром", "Татнефть",
@@ -11,7 +10,7 @@ def view(page: ft.Page):
 
     return ft.Container(
         expand=True,
-        padding=0,
+        padding=20,
         content=ft.Column(
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             spacing=20,
@@ -30,7 +29,6 @@ def view(page: ft.Page):
                             "Fuel",
                             size=30,
                             weight=ft.FontWeight.BOLD,
-                            color=ft.Colors.WHITE,
                         ),
                         ft.Text(
                             "Mix",
@@ -45,16 +43,14 @@ def view(page: ft.Page):
                     "Топливо в баке",
                     size=15,
                     weight=ft.FontWeight.BOLD,
-                    color=ft.Colors.WHITE,
                 ),
 
                 ft.Row(
                     alignment=ft.MainAxisAlignment.CENTER,
-                    spacing=0,
+                    spacing=10,
                     controls=[
                         ft.Dropdown(
                             width=200,
-
                             label="АЗС",
                             hint_text="Выберите АЗС",
                             options=[
@@ -62,7 +58,6 @@ def view(page: ft.Page):
                                 for station in gas_stations_rf
                             ],
                         ),
-
                         ft.Dropdown(
                             width=180,
                             label="Тип топлива",
@@ -85,8 +80,6 @@ def view(page: ft.Page):
                     input_filter=ft.NumbersOnlyInputFilter(),
                     filled=True,
                 ),
-
-
             ],
         ),
     )

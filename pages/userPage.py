@@ -3,18 +3,19 @@ import os
 import shutil
 import time
 import threading
+from theme import get_theme_name, get_theme_colors
 
-BG = "#101418"
-CARD = "#1A1F24"
-GREEN = "#5CC85C"
-BLUE = "#4B8DFF"
-TEXT = "#FFFFFF"
-TEXT2 = "#9EA6AF"
+GREEN = ft.Colors.GREEN
+BLUE = ft.Colors.BLUE
 
 setMessage = "Включены"
 countChange = 0
 countLiters = 0
 countRON = 0
+
+# Глобальная переменная для хранения текущего аватара
+current_avatar = None
+avatar_gesture_ref = None
 
 
 def clear_avatars_folder():
@@ -38,14 +39,11 @@ def save_avatar_image(file_path):
         if not os.path.exists(avatars_dir):
             os.makedirs(avatars_dir)
 
-        # Получаем расширение файла
         ext = os.path.splitext(file_path)[1]
-        # Создаем уникальное имя с timestamp
         timestamp = int(time.time())
         new_filename = f"avatar_{timestamp}{ext}"
         new_path = os.path.join(avatars_dir, new_filename)
 
-        # Копируем файл
         shutil.copy2(file_path, new_path)
         print(f"Аватар сохранен: {new_filename}")
         return new_path
@@ -59,10 +57,8 @@ def get_avatar_from_storage():
     try:
         avatars_dir = "avatars"
         if os.path.exists(avatars_dir):
-            # Получаем все файлы аватаров
             files = [f for f in os.listdir(avatars_dir) if f.startswith("avatar_")]
             if files:
-                # Сортируем по времени создания (по имени файла)
                 files.sort(reverse=True)
                 latest_file = files[0]
                 print(f"Загружен аватар: {latest_file}")
@@ -73,10 +69,18 @@ def get_avatar_from_storage():
 
 
 def view(page: ft.Page):
+    global current_avatar, avatar_gesture_ref
+
+    # Получаем цвета для текущей темы
+    colors = get_theme_colors()
+
     # Создаем изменяемые тексты
     notification_text = ft.Text(
         setMessage,
-        color=TEXT2,
+        size=12,
+    )
+    theme_text = ft.Text(
+        get_theme_name(),
         size=12,
     )
 
@@ -85,21 +89,18 @@ def view(page: ft.Page):
         str(countChange),
         size=22,
         weight="bold",
-        color=TEXT,
     )
 
     liters_display = ft.Text(
         str(countLiters),
         size=22,
         weight="bold",
-        color=TEXT,
     )
 
     ron_display = ft.Text(
         str(countRON),
         size=22,
         weight="bold",
-        color=TEXT,
     )
 
     def messageChange(e):
@@ -119,12 +120,20 @@ def view(page: ft.Page):
         )
         page.snack_bar.open = True
         page.update()
-        print(f"Статистика: {countChange}, {countLiters}, {countRON}")
 
     def on_theme_click(e):
         print("Нажата тема")
+
+        # Меняем тему через главную страницу
+        if hasattr(page, 'change_theme'):
+            page.change_theme()
+
+        # Обновляем текст темы
+        theme_text.value = get_theme_name()
+        page.update()
+
         page.snack_bar = ft.SnackBar(
-            ft.Text("Открыт раздел темы"),
+            ft.Text(f"Тема изменена на {theme_text.value}"),
             bgcolor=GREEN,
         )
         page.snack_bar.open = True
@@ -184,11 +193,8 @@ def view(page: ft.Page):
         page.snack_bar.open = True
         page.update()
 
-        # Запускаем выбор файла в отдельном потоке
         def select_file_thread():
             file_path = select_image_with_tkinter()
-
-            # Обновляем UI в главном потоке через page.run_thread
             if file_path:
                 page.run_thread(process_selected_file, file_path)
             else:
@@ -198,18 +204,16 @@ def view(page: ft.Page):
         thread.start()
 
     def process_selected_file(file_path):
-        """Обрабатывает выбранный файл (выполняется в главном потоке)"""
+        """Обрабатывает выбранный файл"""
+        global current_avatar
+
         valid_extensions = ('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp')
         if file_path.lower().endswith(valid_extensions):
-            # Очищаем старые аватары
             clear_avatars_folder()
-
-            # Сохраняем новый аватар с уникальным именем
             saved_path = save_avatar_image(file_path)
             if saved_path:
-                # Обновляем аватар
                 try:
-                    # Создаем новый контейнер с изображением
+                    # Создаем новый аватар
                     new_avatar = ft.Container(
                         bgcolor=None,
                         width=100,
@@ -223,12 +227,13 @@ def view(page: ft.Page):
                         )
                     )
 
-                    # Обновляем содержимое аватара
-                    avatar_gesture.content = new_avatar
+                    # Обновляем глобальную переменную
+                    current_avatar = new_avatar
 
-                    # Сохраняем ссылку на новый аватар
-                    nonlocal avatar
-                    avatar = new_avatar
+                    # Обновляем содержимое GestureDetector
+                    if avatar_gesture_ref:
+                        avatar_gesture_ref.content = new_avatar
+                        page.update()
 
                     page.snack_bar = ft.SnackBar(
                         ft.Text("Аватар успешно обновлен!"),
@@ -239,24 +244,11 @@ def view(page: ft.Page):
                 except Exception as err:
                     print(f"Ошибка при обновлении аватара: {err}")
                     page.snack_bar = ft.SnackBar(
-                        ft.Text("Аватар обновлен! Перезагружаем страницу..."),
-                        bgcolor=BLUE,
+                        ft.Text("Ошибка при обновлении аватара!"),
+                        bgcolor=ft.Colors.RED,
                     )
                     page.snack_bar.open = True
                     page.update()
-
-                    # Перезагружаем страницу
-                    def reload_page():
-                        time.sleep(1)
-                        try:
-                            page.change_page(0)
-                            time.sleep(0.1)
-                            page.change_page(4)
-                        except:
-                            page.update()
-
-                    thread = threading.Thread(target=reload_page, daemon=True)
-                    thread.start()
             else:
                 page.snack_bar = ft.SnackBar(
                     ft.Text("Ошибка при сохранении аватара!"),
@@ -276,7 +268,7 @@ def view(page: ft.Page):
         """Показывает сообщение об отмене выбора"""
         page.snack_bar = ft.SnackBar(
             ft.Text("Выбор файла отменен"),
-            bgcolor=TEXT2,
+            bgcolor=ft.Colors.GREY,
         )
         page.snack_bar.open = True
         page.update()
@@ -307,14 +299,21 @@ def view(page: ft.Page):
             content=ft.Icon(
                 ft.Icons.PERSON,
                 size=50,
-                color=BG,
+                color=ft.Colors.WHITE,
             )
         )
 
+    # Сохраняем текущий аватар в глобальную переменную
+    current_avatar = avatar
+
+    # Создаем GestureDetector и сохраняем ссылку на него
     avatar_gesture = ft.GestureDetector(
         content=avatar,
         on_tap=on_avatar_click,
     )
+
+    # Сохраняем ссылку на GestureDetector для обновления
+    avatar_gesture_ref = avatar_gesture
 
     # Создаем кнопки настроек
     notification_item = ft.Container(
@@ -332,7 +331,6 @@ def view(page: ft.Page):
                     controls=[
                         ft.Text(
                             "Уведомления",
-                            color=TEXT,
                             size=16,
                         ),
                         notification_text,
@@ -341,7 +339,6 @@ def view(page: ft.Page):
                 ft.Icon(
                     ft.Icons.ARROW_FORWARD_IOS,
                     size=16,
-                    color=TEXT2,
                 )
             ],
         ),
@@ -362,12 +359,10 @@ def view(page: ft.Page):
                     controls=[
                         ft.Text(
                             "Избранные АЗС",
-                            color=TEXT,
                             size=16,
                         ),
                         ft.Text(
                             "Лукойл",
-                            color=TEXT2,
                             size=12,
                         ),
                     ],
@@ -375,7 +370,6 @@ def view(page: ft.Page):
                 ft.Icon(
                     ft.Icons.ARROW_FORWARD_IOS,
                     size=16,
-                    color=TEXT2,
                 )
             ],
         ),
@@ -396,20 +390,14 @@ def view(page: ft.Page):
                     controls=[
                         ft.Text(
                             "Тема",
-                            color=TEXT,
                             size=16,
                         ),
-                        ft.Text(
-                            "Тёмная",
-                            color=TEXT2,
-                            size=12,
-                        ),
+                        theme_text,
                     ],
                 ),
                 ft.Icon(
                     ft.Icons.ARROW_FORWARD_IOS,
                     size=16,
-                    color=TEXT2,
                 )
             ],
         ),
@@ -423,12 +411,11 @@ def view(page: ft.Page):
                 "Профиль",
                 size=30,
                 weight="bold",
-                color=TEXT,
             ),
 
             # Карточка пользователя
             ft.Container(
-                bgcolor=CARD,
+                bgcolor=ft.Colors.SURFACE_CONTAINER,  # изменено
                 border_radius=15,
                 padding=20,
                 content=ft.Column(
@@ -440,11 +427,9 @@ def view(page: ft.Page):
                             "Водитель",
                             size=22,
                             weight="bold",
-                            color=TEXT,
                         ),
                         ft.Text(
                             "Пользователь FuelMix",
-                            color=TEXT2,
                         ),
                     ],
                 ),
@@ -455,7 +440,6 @@ def view(page: ft.Page):
                 "Статистика",
                 size=20,
                 weight="bold",
-                color=TEXT,
             ),
 
             ft.Row(
@@ -463,7 +447,7 @@ def view(page: ft.Page):
                 controls=[
                     ft.Container(
                         expand=True,
-                        bgcolor=CARD,
+                        bgcolor=ft.Colors.SURFACE_CONTAINER,  # изменено
                         border_radius=12,
                         padding=15,
                         content=ft.Column(
@@ -477,14 +461,13 @@ def view(page: ft.Page):
                                 ft.Text(
                                     "Смешиваний",
                                     size=12,
-                                    color=TEXT2,
                                 ),
                             ],
                         ),
                     ),
                     ft.Container(
                         expand=True,
-                        bgcolor=CARD,
+                        bgcolor=ft.Colors.SURFACE_CONTAINER,  # изменено
                         border_radius=12,
                         padding=15,
                         content=ft.Column(
@@ -498,14 +481,13 @@ def view(page: ft.Page):
                                 ft.Text(
                                     "Литров",
                                     size=12,
-                                    color=TEXT2,
                                 ),
                             ],
                         ),
                     ),
                     ft.Container(
                         expand=True,
-                        bgcolor=CARD,
+                        bgcolor=ft.Colors.SURFACE_CONTAINER,  # изменено
                         border_radius=12,
                         padding=15,
                         content=ft.Column(
@@ -519,7 +501,6 @@ def view(page: ft.Page):
                                 ft.Text(
                                     "Средний RON",
                                     size=12,
-                                    color=TEXT2,
                                 ),
                             ],
                         ),
@@ -532,11 +513,10 @@ def view(page: ft.Page):
                 "Настройки",
                 size=20,
                 weight="bold",
-                color=TEXT,
             ),
 
             ft.Container(
-                bgcolor=CARD,
+                bgcolor=ft.Colors.SURFACE_CONTAINER,  # изменено
                 border_radius=15,
                 content=ft.Column(
                     controls=[
