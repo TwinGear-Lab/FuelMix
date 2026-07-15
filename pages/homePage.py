@@ -243,13 +243,19 @@ def view(page: ft.Page):
                     ],
                 ),
 
-                # Топливо в баке
-                ft.Text(
-                    "Топливо в баке",
-                    size=15,
-                    weight=ft.FontWeight.BOLD,
+                ft.Row(
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    spacing=10,
+                    controls=[
+                        # Топливо в баке
+                        ft.Text(
+                            "Топливо в баке",
+                            size=15,
+                            weight=ft.FontWeight.BOLD,
+                        ),
+                        ft.Checkbox(),
+                    ],
                 ),
-
                 ft.Row(
                     alignment=ft.MainAxisAlignment.CENTER,
                     spacing=10,
