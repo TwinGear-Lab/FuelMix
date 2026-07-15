@@ -110,13 +110,27 @@ def view(page: ft.Page):
                     ],
                 ),
 
-                ft.TextField(
-                    width=200,
-                    hint_text="Объем топлива",
-                    suffix=ft.Text("л"),
-                    keyboard_type=ft.KeyboardType.NUMBER,
-                    input_filter=ft.NumbersOnlyInputFilter(),
-                    filled=True,
+                ft.Row(
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    spacing=0,
+                    controls=[
+                        ft.TextField(
+                            width=200,
+                            hint_text="Октановое число",
+                            suffix=ft.Text("ОЧ"),
+                            keyboard_type=ft.KeyboardType.NUMBER,
+                            input_filter=ft.NumbersOnlyInputFilter(),
+                            filled=True,
+                        ),
+                        ft.TextField(
+                            width=200,
+                            hint_text="Объем топлива",
+                            suffix=ft.Text("л"),
+                            keyboard_type=ft.KeyboardType.NUMBER,
+                            input_filter=ft.NumbersOnlyInputFilter(),
+                            filled=True,
+                        ),
+                    ],
                 ),
 
                 # топливо которым будем заправляться 1
@@ -156,13 +170,27 @@ def view(page: ft.Page):
                     ],
                 ),
 
-                ft.TextField(
-                    width=200,
-                    hint_text="Объем топлива",
-                    suffix=ft.Text("л"),
-                    keyboard_type=ft.KeyboardType.NUMBER,
-                    input_filter=ft.NumbersOnlyInputFilter(),
-                    filled=True,
+                ft.Row(
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    spacing=0,
+                    controls=[
+                        ft.TextField(
+                            width=200,
+                            hint_text="Октановое число",
+                            suffix=ft.Text("ОЧ"),
+                            keyboard_type=ft.KeyboardType.NUMBER,
+                            input_filter=ft.NumbersOnlyInputFilter(),
+                            filled=True,
+                        ),
+                        ft.TextField(
+                            width=200,
+                            hint_text="Объем топлива",
+                            suffix=ft.Text("л"),
+                            keyboard_type=ft.KeyboardType.NUMBER,
+                            input_filter=ft.NumbersOnlyInputFilter(),
+                            filled=True,
+                        ),
+                    ],
                 ),
 
                 # топливо которым будем заправляться 2
