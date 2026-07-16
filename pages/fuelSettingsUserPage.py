@@ -586,10 +586,13 @@ def view(page: ft.Page):
             controls=[
                 ft.Row(
                     controls=[
+                        ft.Container(width=48),
                         ft.Text(
                             "Настройки АЗС",
                             size=30,
                             weight="bold",
+                            expand=True,
+                            text_align=ft.TextAlign.CENTER,
                         ),
                         ft.IconButton(
                             icon=ft.Icons.ADD,
@@ -600,10 +603,7 @@ def view(page: ft.Page):
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 ),
-                ft.Text(
-                    "Выберите АЗС из списка и нажмите 'Загрузить' для редактирования",
-                    size=16,
-                ),
+
                 ft.Divider(height=10),
                 # Выпадающий список и кнопка загрузки
                 ft.Row(

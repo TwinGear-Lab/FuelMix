@@ -199,136 +199,146 @@ def view(page: ft.Page):
         ),
     )
 
-    return ft.Column(
-        scroll=ft.ScrollMode.AUTO,
-        controls=[
-            # Заголовок
-            ft.Text(
-                "Профиль",
-                size=30,
-                weight="bold",
-            ),
-
-            # Карточка пользователя
-            ft.Container(
-                bgcolor=ft.Colors.SURFACE_CONTAINER,
-                border_radius=15,
-                padding=20,
-                content=ft.Column(
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+    return ft.Container(
+        expand=True,
+        padding=20,
+        content=ft.Column(
+            scroll=ft.ScrollMode.AUTO,
+            spacing=15,
+            controls=[
+                # Заголовок
+                ft.Row(
+                    alignment=ft.MainAxisAlignment.CENTER,
                     controls=[
-                        avatar,
-                        ft.Container(height=10),
                         ft.Text(
-                            "Водитель",
-                            size=22,
+                            "Профиль",
+                            size=30,
                             weight="bold",
-                        ),
-                        ft.Text(
-                            "Пользователь FuelMix",
                         ),
                     ],
                 ),
-            ),
 
-            # Статистика
-            ft.Text(
-                "Статистика",
-                size=20,
-                weight="bold",
-            ),
-
-            ft.Row(
-                spacing=10,
-                controls=[
-                    ft.Container(
-                        expand=True,
-                        bgcolor=ft.Colors.SURFACE_CONTAINER,
-                        border_radius=12,
-                        padding=15,
-                        content=ft.Column(
-                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                            controls=[
-                                ft.Icon(
-                                    ft.Icons.SYNC,
-                                    color=GREEN,
-                                ),
-                                changes_display,
-                                ft.Text(
-                                    "Смешиваний",
-                                    size=12,
-                                ),
-                            ],
-                        ),
+                # Карточка пользователя
+                ft.Container(
+                    bgcolor=ft.Colors.SURFACE_CONTAINER,
+                    border_radius=15,
+                    padding=20,
+                    content=ft.Column(
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        controls=[
+                            avatar,
+                            ft.Container(height=10),
+                            ft.Text(
+                                "Водитель",
+                                size=22,
+                                weight="bold",
+                            ),
+                            ft.Text(
+                                "Пользователь FuelMix",
+                            ),
+                        ],
                     ),
-                    ft.Container(
-                        expand=True,
-                        bgcolor=ft.Colors.SURFACE_CONTAINER,
-                        border_radius=12,
-                        padding=15,
-                        content=ft.Column(
-                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                            controls=[
-                                ft.Icon(
-                                    ft.Icons.LOCAL_GAS_STATION,
-                                    color=GREEN,
-                                ),
-                                liters_display,
-                                ft.Text(
-                                    "Литров",
-                                    size=12,
-                                ),
-                            ],
-                        ),
-                    ),
-                    ft.Container(
-                        expand=True,
-                        bgcolor=ft.Colors.SURFACE_CONTAINER,
-                        border_radius=12,
-                        padding=15,
-                        content=ft.Column(
-                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                            controls=[
-                                ft.Icon(
-                                    ft.Icons.SPEED,
-                                    color=GREEN,
-                                ),
-                                ron_display,
-                                ft.Text(
-                                    "Средний RON",
-                                    size=12,
-                                ),
-                            ],
-                        ),
-                    ),
-                ],
-            ),
-
-            # Настройки
-            ft.Text(
-                "Настройки",
-                size=20,
-                weight="bold",
-            ),
-
-            ft.Container(
-                bgcolor=ft.Colors.SURFACE_CONTAINER,
-                border_radius=15,
-                content=ft.Column(
-                    controls=[
-                        notification_item,
-                        stations_item,
-                        theme_item,
-                    ]
                 ),
-            ),
 
-            # Кнопка выхода
-            ft.FilledButton(
-                "Обнулить значения",
-                icon=ft.Icons.RESTORE,
-                on_click=reset_values,
-                width=float('inf'),
-            ),
-        ],
+                # Статистика
+                ft.Text(
+                    "Статистика",
+                    size=20,
+                    weight="bold",
+                ),
+
+                ft.Row(
+                    spacing=10,
+                    controls=[
+                        ft.Container(
+                            expand=True,
+                            bgcolor=ft.Colors.SURFACE_CONTAINER,
+                            border_radius=12,
+                            padding=15,
+                            content=ft.Column(
+                                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                controls=[
+                                    ft.Icon(
+                                        ft.Icons.SYNC,
+                                        color=GREEN,
+                                    ),
+                                    changes_display,
+                                    ft.Text(
+                                        "Смешиваний",
+                                        size=12,
+                                    ),
+                                ],
+                            ),
+                        ),
+                        ft.Container(
+                            expand=True,
+                            bgcolor=ft.Colors.SURFACE_CONTAINER,
+                            border_radius=12,
+                            padding=15,
+                            content=ft.Column(
+                                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                controls=[
+                                    ft.Icon(
+                                        ft.Icons.LOCAL_GAS_STATION,
+                                        color=GREEN,
+                                    ),
+                                    liters_display,
+                                    ft.Text(
+                                        "Литров",
+                                        size=12,
+                                    ),
+                                ],
+                            ),
+                        ),
+                        ft.Container(
+                            expand=True,
+                            bgcolor=ft.Colors.SURFACE_CONTAINER,
+                            border_radius=12,
+                            padding=15,
+                            content=ft.Column(
+                                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                controls=[
+                                    ft.Icon(
+                                        ft.Icons.SPEED,
+                                        color=GREEN,
+                                    ),
+                                    ron_display,
+                                    ft.Text(
+                                        "Средний RON",
+                                        size=12,
+                                    ),
+                                ],
+                            ),
+                        ),
+                    ],
+                ),
+
+                # Настройки
+                ft.Text(
+                    "Настройки",
+                    size=20,
+                    weight="bold",
+                ),
+
+                ft.Container(
+                    bgcolor=ft.Colors.SURFACE_CONTAINER,
+                    border_radius=15,
+                    content=ft.Column(
+                        controls=[
+                            notification_item,
+                            stations_item,
+                            theme_item,
+                        ]
+                    ),
+                ),
+
+                # Кнопка выхода
+                ft.FilledButton(
+                    "Обнулить значения",
+                    icon=ft.Icons.RESTORE,
+                    on_click=reset_values,
+                    width=float('inf'),
+                ),
+            ],
+        ),
     )

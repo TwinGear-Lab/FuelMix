@@ -315,32 +315,38 @@ def view(page: ft.Page):
     stats_container = ft.Container()
 
     # Создаем страницу
-    result = ft.Column(
-        controls=[
-            ft.Row(
-                controls=[
-                    ft.Text(
-                        "История смешиваний",
-                        size=30,
-                        weight="bold",
-                        expand=True,
-                    ),
-                    ft.IconButton(
-                        icon=ft.Icons.DELETE_SWEEP,
-                        icon_color=ft.Colors.RED,
-                        tooltip="Очистить историю",
-                        on_click=clear_all_history,
-                    ),
-                ],
-                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-            ),
-            stats_container,
-            ft.Divider(height=20, color=ft.Colors.TRANSPARENT),  # Просто для отступа
-            # Список истории
-            history_list,
-        ],
-        scroll=ft.ScrollMode.AUTO,
-        spacing=15,
+    result = ft.Container(
+        expand=True,
+        padding=20,
+        content=ft.Column(
+            controls=[
+                ft.Row(
+                    controls=[
+                        ft.Container(width=48),
+                        ft.Text(
+                            "История смешиваний",
+                            size=30,
+                            weight="bold",
+                            expand=True,
+                            text_align=ft.TextAlign.CENTER,
+                        ),
+                        ft.IconButton(
+                            icon=ft.Icons.DELETE_SWEEP,
+                            icon_color=ft.Colors.RED,
+                            tooltip="Очистить историю",
+                            on_click=clear_all_history,
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                ),
+                stats_container,
+                ft.Divider(height=20, color=ft.Colors.TRANSPARENT),  # Просто для отступа
+                # Список истории
+                history_list,
+            ],
+            scroll=ft.ScrollMode.AUTO,
+            spacing=15,
+        ),
     )
 
     # Загружаем историю при создании страницы
