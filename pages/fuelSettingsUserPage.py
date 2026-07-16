@@ -145,7 +145,6 @@ def view(page: ft.Page):
             width=70,
             text_align=ft.TextAlign.CENTER,
             keyboard_type=ft.KeyboardType.NUMBER,
-            input_filter=ft.NumbersOnlyInputFilter(),
             dense=True,
             height=40,
         )

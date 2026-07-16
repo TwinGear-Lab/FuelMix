@@ -1,22 +1,36 @@
 import flet as ft
 from theme import get_theme_name, get_theme_colors, constrain_width
+from history_storage import load_history
 
 GREEN = ft.Colors.GREEN
 BLUE = ft.Colors.BLUE
-
-setMessage = "Включены"
-countChange = 0
-countLiters = 0
-countRON = 0
 
 
 def view(page: ft.Page):
     # Получаем цвета для текущей темы
     colors = get_theme_colors()
 
+    # Загружаем историю и вычисляем статистику
+    history = load_history()
+    total_calculations = len(history)
+    total_volume = 0.0
+    total_octane_sum = 0.0
+
+    for record in history:
+        result = record.get("result", {})
+        try:
+            octane = float(result.get("octane", 0))
+            volume = float(result.get("volume", 0))
+            total_octane_sum += octane
+            total_volume += volume
+        except (ValueError, TypeError):
+            pass
+
+    avg_octane = total_octane_sum / total_calculations if total_calculations > 0 else 0
+
     # Создаем изменяемые тексты
     notification_text = ft.Text(
-        setMessage,
+        "Включены",
         size=12,
     )
     theme_text = ft.Text(
@@ -26,36 +40,34 @@ def view(page: ft.Page):
 
     # Для статистики создаем отдельные Text объекты
     changes_display = ft.Text(
-        str(countChange),
+        str(total_calculations),
         size=22,
         weight="bold",
     )
 
     liters_display = ft.Text(
-        str(countLiters),
+        f"{total_volume:.1f}",
         size=22,
         weight="bold",
     )
 
     ron_display = ft.Text(
-        str(countRON),
+        f"{avg_octane:.1f}",
         size=22,
         weight="bold",
     )
 
     def messageChange(e):
-        global setMessage
-        if setMessage == "Включены":
-            setMessage = "Отключены"
+        if notification_text.value == "Включены":
+            notification_text.value = "Отключены"
         else:
-            setMessage = "Включены"
-        notification_text.value = setMessage
+            notification_text.value = "Включены"
         page.update()
-        print(f"Уведомления теперь: {setMessage}")
+        print(f"Уведомления теперь: {notification_text.value}")
 
     def on_stations_click(e):
         page.snack_bar = ft.SnackBar(
-            ft.Text("Статистика обновлена!"),
+            ft.Text("Избранные АЗС"),
             bgcolor=GREEN,
         )
         page.snack_bar.open = True
@@ -64,11 +76,9 @@ def view(page: ft.Page):
     def on_theme_click(e):
         print("Нажата тема")
 
-        # Меняем тему через главную страницу
         if hasattr(page, 'change_theme'):
             page.change_theme()
 
-        # Обновляем текст темы
         theme_text.value = get_theme_name()
         page.update()
 
@@ -78,25 +88,6 @@ def view(page: ft.Page):
         )
         page.snack_bar.open = True
         page.update()
-
-    def reset_values(e):
-        global countChange, countLiters, countRON
-
-        countChange = 0
-        countLiters = 0
-        countRON = 0
-
-        changes_display.value = str(countChange)
-        liters_display.value = str(countLiters)
-        ron_display.value = str(countRON)
-
-        page.snack_bar = ft.SnackBar(
-            ft.Text("Все значения обнулены!"),
-            bgcolor=GREEN,
-        )
-        page.snack_bar.open = True
-        page.update()
-        print("Значения обнулены")
 
     # Создаем аватар (только стандартная иконка)
     avatar = ft.Container(
@@ -331,15 +322,6 @@ def view(page: ft.Page):
                             theme_item,
                         ]
                     ),
-                ),
-
-                # Кнопка выхода
-                ft.FilledButton(
-
-                    "Обнулить значения",
-                    icon=ft.Icons.RESTORE,
-                    on_click=reset_values,
-                    expand=True,
                 ),
             ],
         ),
