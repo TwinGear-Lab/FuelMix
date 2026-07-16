@@ -512,7 +512,7 @@ def view(page: ft.Page):
                                 alignment=ft.MainAxisAlignment.CENTER,
                             ),
                             on_click=calculate_mixture,
-                            width=200,
+                            expand=True,
                             height=50,
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=18),
@@ -527,7 +527,7 @@ def view(page: ft.Page):
                                 alignment=ft.MainAxisAlignment.CENTER,
                             ),
                             on_click=clear_fields,
-                            width=200,
+                            expand=True,
                             height=50,
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=18),

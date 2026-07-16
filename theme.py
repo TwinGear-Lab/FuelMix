@@ -20,9 +20,10 @@ def get_theme_name():
 
 
 # Минимальная ширина экрана, под которую адаптируется интерфейс.
-# 128мм при стандартной плотности 96dpi (логические пиксели Flet-окна).
-MIN_SCREEN_WIDTH_MM = 128
-MIN_SCREEN_WIDTH_PX = round(MIN_SCREEN_WIDTH_MM / 25.4 * 96)  # ≈ 484px
+# 85мм при стандартной плотности 96dpi (логические пиксели Flet-окна) —
+# запас под совсем узкие телефоны.
+MIN_SCREEN_WIDTH_MM = 85
+MIN_SCREEN_WIDTH_PX = round(MIN_SCREEN_WIDTH_MM / 25.4 * 96)  # ≈ 321px
 
 PAGE_PADDING = 12  # компактный отступ, чтобы хватало места на узких экранах
 

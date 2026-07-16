@@ -45,7 +45,6 @@ def view(page: ft.Page):
 
     # Выпадающий список для выбора АЗС
     station_dropdown = ft.Dropdown(
-        width=200,
         label="Выберите АЗС",
         hint_text="Выберите АЗС из списка",
         options=[
@@ -176,7 +175,7 @@ def view(page: ft.Page):
             fuel_name_field = ft.TextField(
                 label="Новое название топлива",
                 value=fuel_name,
-                width=300,
+                width=250,
             )
 
             def save_fuel_name(e):
@@ -287,7 +286,7 @@ def view(page: ft.Page):
         station_name_field = ft.TextField(
             label="Новое название АЗС",
             value=old_name,
-            width=300,
+            width=250,
         )
 
         def save_station_name(e):
@@ -415,7 +414,7 @@ def view(page: ft.Page):
         station_name_field = ft.TextField(
             label="Название АЗС",
             hint_text="Введите название АЗС",
-            width=300,
+            width=250,
         )
 
         def add_station(e):
@@ -481,7 +480,6 @@ def view(page: ft.Page):
         fuel_name_field = ft.TextField(
             label="Название топлива",
             hint_text="Например: АИ-95",
-            width=250,
         )
         fuel_octane_field = ft.TextField(
             label="Октановое число",
@@ -563,8 +561,9 @@ def view(page: ft.Page):
                     fuel_name_field,
                     fuel_octane_field,
                 ],
+                horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
                 spacing=10,
-                width=300,
+                width=250,
             ),
             actions=[
                 ft.TextButton("Отмена", on_click=cancel_add),
@@ -607,7 +606,7 @@ def view(page: ft.Page):
 
                 ft.Divider(height=10),
                 # Выпадающий список и кнопка загрузки
-                ft.Row(
+                ft.Column(
                     controls=[
                         station_dropdown,
                         ft.FilledButton(
@@ -619,11 +618,10 @@ def view(page: ft.Page):
                                 alignment=ft.MainAxisAlignment.CENTER,
                             ),
                             on_click=load_station_data,
-                            width=200,
                             height=45,
                         ),
                     ],
-                    alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
                     spacing=10,
                 ),
                 ft.Divider(height=20),

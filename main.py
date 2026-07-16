@@ -19,7 +19,7 @@ def main(page: ft.Page):
     page.spacing = 0
 
     # Размеры окна: по умолчанию удобны под ~1060px, но окно можно сузить
-    # вплоть до MIN_SCREEN_WIDTH_PX (~128мм) — все страницы под это адаптированы
+    # вплоть до MIN_SCREEN_WIDTH_PX (узкие телефоны) — все страницы под это адаптированы
     page.window.width = 1060
     page.window.height = 720
     page.window.min_width = MIN_SCREEN_WIDTH_PX
