@@ -5,6 +5,9 @@ from history_storage import add_history_record
 from theme import constrain_width
 import os
 
+# Путь к файлу с данными (как в fuelSettingsUserPage)
+DATA_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dataAGS.json")
+
 
 def view(page: ft.Page):
     # Загружаем данные АЗС
@@ -12,8 +15,8 @@ def view(page: ft.Page):
     gas_stations_rf = []
 
     try:
-        if os.path.exists("dataAGS.json"):
-            with open("dataAGS.json", "r", encoding="utf-8") as file:
+        if os.path.exists(DATA_FILE):
+            with open(DATA_FILE, "r", encoding="utf-8") as file:
                 data_ags = json.load(file)
                 gas_stations_rf = list(data_ags.keys())
     except Exception as e:
@@ -500,7 +503,7 @@ def view(page: ft.Page):
                             content=ft.Row(
                                 controls=[
                                     ft.Icon(ft.Icons.CALCULATE),
-                                    ft.Text("Рассчитать смесь"),
+                                    ft.Text("Рассчитать"),
                                 ],
                                 alignment=ft.MainAxisAlignment.CENTER,
                             ),
