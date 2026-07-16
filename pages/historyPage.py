@@ -316,9 +316,9 @@ def view(page: ft.Page):
     stats_container = ft.Container()
 
     # Создаем страницу
-    result = constrain_width(ft.Container(
+    result = constrain_width(page, ft.Container(
         expand=True,
-        padding=20,
+        padding=12,
         content=ft.Column(
             controls=[
                 ft.Row(

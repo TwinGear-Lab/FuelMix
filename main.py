@@ -6,7 +6,7 @@ from pages import fuelSettingsUserPage
 from pages import mapFuelPage
 from pages import userPage
 from widgets.navigationPanel import navigation_panel
-from theme import current_theme, toggle_theme  # импортируем из theme.py
+from theme import current_theme, toggle_theme, MIN_SCREEN_WIDTH_PX  # импортируем из theme.py
 
 def main(page: ft.Page):
     root_dir = os.path.dirname(os.path.abspath(__file__))
@@ -18,11 +18,12 @@ def main(page: ft.Page):
     page.padding = 0
     page.spacing = 0
 
-    # Размеры окна оптимизированы под экраны шириной ~1060px
+    # Размеры окна: по умолчанию удобны под ~1060px, но окно можно сузить
+    # вплоть до MIN_SCREEN_WIDTH_PX (~128мм) — все страницы под это адаптированы
     page.window.width = 1060
     page.window.height = 720
-    page.window.min_width = 900
-    page.window.min_height = 600
+    page.window.min_width = MIN_SCREEN_WIDTH_PX
+    page.window.min_height = 500
     page.window.resizable = True
     page.window.center()
 

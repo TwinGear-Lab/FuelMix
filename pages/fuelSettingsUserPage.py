@@ -564,7 +564,7 @@ def view(page: ft.Page):
                     fuel_octane_field,
                 ],
                 spacing=10,
-                width=400,
+                width=300,
             ),
             actions=[
                 ft.TextButton("Отмена", on_click=cancel_add),
@@ -579,9 +579,9 @@ def view(page: ft.Page):
         print(f"Диалог добавления топлива для {station_name} открыт")
 
     # Создаем страницу
-    result = constrain_width(ft.Container(
+    result = constrain_width(page, ft.Container(
         expand=True,
-        padding=20,
+        padding=12,
         content=ft.Column(
             scroll=ft.ScrollMode.AUTO,
             controls=[

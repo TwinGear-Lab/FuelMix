@@ -199,9 +199,9 @@ def view(page: ft.Page):
         ),
     )
 
-    return constrain_width(ft.Container(
+    return constrain_width(page, ft.Container(
         expand=True,
-        padding=20,
+        padding=12,
         content=ft.Column(
             scroll=ft.ScrollMode.AUTO,
             spacing=15,
