@@ -81,12 +81,14 @@ def view(page: ft.Page):
                         tank_azs := ft.Dropdown(
                             expand=True,
                             label="АЗС",
+                            text_size=10,
                             hint_text="Выберите АЗС",
                             options=[ft.dropdown.Option(station) for station in gas_stations_rf],
                         ),
                         tank_fuel_type := ft.Dropdown(
                             expand=True,
                             label="Тип топлива",
+                            text_size=10,
                             hint_text="Выберите топливо",
                             options=[],
                         ),
@@ -99,6 +101,7 @@ def view(page: ft.Page):
                         tank_octane := ft.TextField(
                             expand=True,
                             hint_text="Октановое число",
+                            text_size=10,
                             suffix=ft.Text("ОЧ"),
                             keyboard_type=ft.KeyboardType.NUMBER,
                             input_filter=ft.NumbersOnlyInputFilter(),
@@ -107,6 +110,7 @@ def view(page: ft.Page):
                         tank_volume := ft.TextField(
                             expand=True,
                             hint_text="Объем топлива",
+                            text_size=10,
                             suffix=ft.Text("л"),
                             keyboard_type=ft.KeyboardType.NUMBER,
                             input_filter=ft.NumbersOnlyInputFilter(),
@@ -140,6 +144,7 @@ def view(page: ft.Page):
     fuel1_azs = ft.Dropdown(
         expand=True,
         label="АЗС",
+        text_size=10,
         hint_text="Выберите АЗС",
         options=[ft.dropdown.Option(station) for station in gas_stations_rf],
     )
@@ -154,6 +159,7 @@ def view(page: ft.Page):
     fuel1_type = ft.Dropdown(
         expand=True,
         label="Тип топлива",
+        text_size=10,
         hint_text="Выберите топливо",
         options=[],
     )
@@ -168,6 +174,7 @@ def view(page: ft.Page):
     fuel1_octane = ft.TextField(
         expand=True,
         hint_text="Октановое число",
+        text_size=10,
         suffix=ft.Text("ОЧ"),
         keyboard_type=ft.KeyboardType.NUMBER,
         input_filter=ft.NumbersOnlyInputFilter(),
@@ -177,6 +184,7 @@ def view(page: ft.Page):
     fuel1_volume = ft.TextField(
         expand=True,
         hint_text="Объем топлива",
+        text_size=10,
         suffix=ft.Text("л"),
         keyboard_type=ft.KeyboardType.NUMBER,
         input_filter=ft.NumbersOnlyInputFilter(),
@@ -187,6 +195,7 @@ def view(page: ft.Page):
     fuel2_azs = ft.Dropdown(
         expand=True,
         label="АЗС",
+        text_size=10,
         hint_text="Выберите АЗС",
         options=[ft.dropdown.Option(station) for station in gas_stations_rf],
     )
@@ -201,6 +210,7 @@ def view(page: ft.Page):
     fuel2_type = ft.Dropdown(
         expand=True,
         label="Тип топлива",
+        text_size=10,
         hint_text="Выберите топливо",
         options=[],
     )
@@ -215,6 +225,7 @@ def view(page: ft.Page):
     fuel2_octane = ft.TextField(
         expand=True,
         hint_text="Октановое число",
+        text_size=10,
         suffix=ft.Text("ОЧ"),
         keyboard_type=ft.KeyboardType.NUMBER,
         input_filter=ft.NumbersOnlyInputFilter(),
@@ -224,6 +235,7 @@ def view(page: ft.Page):
     fuel2_volume = ft.TextField(
         expand=True,
         hint_text="Объем топлива",
+        text_size=10,
         suffix=ft.Text("л"),
         keyboard_type=ft.KeyboardType.NUMBER,
         input_filter=ft.NumbersOnlyInputFilter(),
@@ -234,6 +246,7 @@ def view(page: ft.Page):
     result_octane = ft.TextField(
         expand=True,
         hint_text="Октановое число",
+        text_size=10,
         suffix=ft.Text("ОЧ"),
         keyboard_type=ft.KeyboardType.NUMBER,
         input_filter=ft.NumbersOnlyInputFilter(),
@@ -243,6 +256,7 @@ def view(page: ft.Page):
     result_volume = ft.TextField(
         expand=True,
         hint_text="Объем топлива",
+        text_size=10,
         suffix=ft.Text("л"),
         keyboard_type=ft.KeyboardType.NUMBER,
         input_filter=ft.NumbersOnlyInputFilter(),
@@ -507,7 +521,7 @@ def view(page: ft.Page):
                             content=ft.Row(
                                 controls=[
                                     ft.Icon(ft.Icons.CALCULATE),
-                                    ft.Text("Рассчитать смесь"),
+                                    ft.Text("Рассчитать смесь", size = 10),
                                 ],
                                 alignment=ft.MainAxisAlignment.CENTER,
                             ),
@@ -522,7 +536,7 @@ def view(page: ft.Page):
                             content=ft.Row(
                                 controls=[
                                     ft.Icon(ft.Icons.CLEAR),
-                                    ft.Text("Очистить"),
+                                    ft.Text("Очистить", size = 10),
                                 ],
                                 alignment=ft.MainAxisAlignment.CENTER,
                             ),
