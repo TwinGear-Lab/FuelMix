@@ -77,20 +77,23 @@ def view(page: ft.Page):
         visible=False,
         content=ft.Column(
             controls=[
-                ft.Column(
+                # Исправлено: теперь как у заправок - Row с двумя Dropdown
+                ft.Row(
                     controls=[
                         tank_azs := ft.Dropdown(
+                            expand=True,
                             label="АЗС",
                             hint_text="Выберите АЗС",
                             options=[ft.dropdown.Option(station) for station in gas_stations_rf],
                         ),
                         tank_fuel_type := ft.Dropdown(
+                            expand=True,
                             label="Тип топлива",
                             hint_text="Выберите топливо",
                             options=[],
                         ),
                     ],
-                    spacing=8,
+                    spacing=10,
                 ),
                 ft.Row(
                     controls=[
