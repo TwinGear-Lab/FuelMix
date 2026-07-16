@@ -1,6 +1,7 @@
 import flet as ft
 import json
 import os
+from theme import constrain_width
 
 # Путь к файлу с данными (корень проекта)
 DATA_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dataAGS.json")
@@ -578,7 +579,7 @@ def view(page: ft.Page):
         print(f"Диалог добавления топлива для {station_name} открыт")
 
     # Создаем страницу
-    result = ft.Container(
+    result = constrain_width(ft.Container(
         expand=True,
         padding=20,
         content=ft.Column(
@@ -630,7 +631,7 @@ def view(page: ft.Page):
                 selected_station_container,
             ],
         ),
-    )
+    ))
 
     # Загружаем первую АЗС если есть
     if gas_stations_rf:

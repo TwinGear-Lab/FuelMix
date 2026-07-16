@@ -2,6 +2,7 @@ import flet as ft
 import json
 from datetime import datetime
 from history_storage import add_history_record
+from theme import constrain_width
 import os
 
 
@@ -78,13 +79,13 @@ def view(page: ft.Page):
                     spacing=10,
                     controls=[
                         tank_azs := ft.Dropdown(
-                            width=180,
+                            width=220,
                             label="АЗС",
                             hint_text="Выберите АЗС",
                             options=[ft.dropdown.Option(station) for station in gas_stations_rf],
                         ),
                         tank_fuel_type := ft.Dropdown(
-                            width=180,
+                            width=220,
                             label="Тип топлива",
                             hint_text="Выберите топливо",
                             options=[],
@@ -96,7 +97,7 @@ def view(page: ft.Page):
                     spacing=10,
                     controls=[
                         tank_octane := ft.TextField(
-                            width=180,
+                            width=220,
                             hint_text="Октановое число",
                             suffix=ft.Text("ОЧ"),
                             keyboard_type=ft.KeyboardType.NUMBER,
@@ -104,7 +105,7 @@ def view(page: ft.Page):
                             filled=True,
                         ),
                         tank_volume := ft.TextField(
-                            width=180,
+                            width=220,
                             hint_text="Объем топлива",
                             suffix=ft.Text("л"),
                             keyboard_type=ft.KeyboardType.NUMBER,
@@ -137,7 +138,7 @@ def view(page: ft.Page):
 
     # Топливо для заправки №1 (октановое число только для чтения)
     fuel1_azs = ft.Dropdown(
-        width=180,
+        width=220,
         label="АЗС",
         hint_text="Выберите АЗС",
         options=[ft.dropdown.Option(station) for station in gas_stations_rf],
@@ -151,7 +152,7 @@ def view(page: ft.Page):
             pass
 
     fuel1_type = ft.Dropdown(
-        width=180,
+        width=220,
         label="Тип топлива",
         hint_text="Выберите топливо",
         options=[],
@@ -165,7 +166,7 @@ def view(page: ft.Page):
             pass
 
     fuel1_octane = ft.TextField(
-        width=180,
+        width=220,
         hint_text="Октановое число",
         suffix=ft.Text("ОЧ"),
         keyboard_type=ft.KeyboardType.NUMBER,
@@ -174,7 +175,7 @@ def view(page: ft.Page):
         read_only=True,  # Только для чтения
     )
     fuel1_volume = ft.TextField(
-        width=180,
+        width=220,
         hint_text="Объем топлива",
         suffix=ft.Text("л"),
         keyboard_type=ft.KeyboardType.NUMBER,
@@ -184,7 +185,7 @@ def view(page: ft.Page):
 
     # Топливо для заправки №2 (октановое число только для чтения)
     fuel2_azs = ft.Dropdown(
-        width=180,
+        width=220,
         label="АЗС",
         hint_text="Выберите АЗС",
         options=[ft.dropdown.Option(station) for station in gas_stations_rf],
@@ -198,7 +199,7 @@ def view(page: ft.Page):
             pass
 
     fuel2_type = ft.Dropdown(
-        width=180,
+        width=220,
         label="Тип топлива",
         hint_text="Выберите топливо",
         options=[],
@@ -212,7 +213,7 @@ def view(page: ft.Page):
             pass
 
     fuel2_octane = ft.TextField(
-        width=180,
+        width=220,
         hint_text="Октановое число",
         suffix=ft.Text("ОЧ"),
         keyboard_type=ft.KeyboardType.NUMBER,
@@ -221,7 +222,7 @@ def view(page: ft.Page):
         read_only=True,  # Только для чтения
     )
     fuel2_volume = ft.TextField(
-        width=180,
+        width=220,
         hint_text="Объем топлива",
         suffix=ft.Text("л"),
         keyboard_type=ft.KeyboardType.NUMBER,
@@ -231,7 +232,7 @@ def view(page: ft.Page):
 
     # Результат
     result_octane = ft.TextField(
-        width=180,
+        width=220,
         hint_text="Октановое число",
         suffix=ft.Text("ОЧ"),
         keyboard_type=ft.KeyboardType.NUMBER,
@@ -240,7 +241,7 @@ def view(page: ft.Page):
         read_only=True,
     )
     result_volume = ft.TextField(
-        width=180,
+        width=220,
         hint_text="Объем топлива",
         suffix=ft.Text("л"),
         keyboard_type=ft.KeyboardType.NUMBER,
@@ -381,7 +382,7 @@ def view(page: ft.Page):
 
         page.update()
 
-    return ft.Container(
+    return constrain_width(ft.Container(
         expand=True,
         padding=20,
         content=ft.Column(
@@ -536,4 +537,4 @@ def view(page: ft.Page):
                 ),
             ],
         ),
-    )
+    ))

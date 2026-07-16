@@ -18,6 +18,20 @@ def get_theme_name():
     """Возвращает название текущей темы"""
     return "Темная" if current_theme == ft.ThemeMode.DARK else "Светлая"
 
+def constrain_width(content, max_width=760):
+    """Центрирует контент и ограничивает его ширину — используется, чтобы
+    страницы выглядели аккуратно на экранах шириной ~1060px, а не
+    растягивались на всю ширину окна."""
+    return ft.Container(
+        expand=True,
+        alignment=ft.Alignment.TOP_CENTER,
+        content=ft.Container(
+            width=max_width,
+            content=content,
+        ),
+    )
+
+
 def get_theme_colors():
     """Возвращает цвета в зависимости от темы"""
     if current_theme == ft.ThemeMode.DARK:

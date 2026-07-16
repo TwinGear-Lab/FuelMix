@@ -1,5 +1,6 @@
 import flet as ft
 from history_storage import load_history, clear_history, delete_history_record
+from theme import constrain_width
 from datetime import datetime
 
 
@@ -315,7 +316,7 @@ def view(page: ft.Page):
     stats_container = ft.Container()
 
     # Создаем страницу
-    result = ft.Container(
+    result = constrain_width(ft.Container(
         expand=True,
         padding=20,
         content=ft.Column(
@@ -347,7 +348,7 @@ def view(page: ft.Page):
             scroll=ft.ScrollMode.AUTO,
             spacing=15,
         ),
-    )
+    ))
 
     # Загружаем историю при создании страницы
     refresh_history()

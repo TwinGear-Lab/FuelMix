@@ -1,5 +1,5 @@
 import flet as ft
-from theme import get_theme_name, get_theme_colors
+from theme import get_theme_name, get_theme_colors, constrain_width
 
 GREEN = ft.Colors.GREEN
 BLUE = ft.Colors.BLUE
@@ -199,7 +199,7 @@ def view(page: ft.Page):
         ),
     )
 
-    return ft.Container(
+    return constrain_width(ft.Container(
         expand=True,
         padding=20,
         content=ft.Column(
@@ -337,8 +337,8 @@ def view(page: ft.Page):
                     "Обнулить значения",
                     icon=ft.Icons.RESTORE,
                     on_click=reset_values,
-                    width=float('inf'),
+                    expand=True,
                 ),
             ],
         ),
-    )
+    ))

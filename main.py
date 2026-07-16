@@ -10,11 +10,21 @@ from theme import current_theme, toggle_theme  # импортируем из the
 
 def main(page: ft.Page):
     root_dir = os.path.dirname(os.path.abspath(__file__))
-    page.window.icon = os.path.join(root_dir, "logo.ico")
+    # .ico лежит и в корне проекта, и в assets_dir ("images") — берём из assets,
+    # чтобы путь совпадал с тем, что использует flet build при сборке exe/shortcut
+    page.window.icon = os.path.join(root_dir, "images", "logo.ico")
     page.title = "FuelMix"
     page.theme_mode = current_theme  # используем глобальную тему
     page.padding = 0
     page.spacing = 0
+
+    # Размеры окна оптимизированы под экраны шириной ~1060px
+    page.window.width = 1060
+    page.window.height = 720
+    page.window.min_width = 900
+    page.window.min_height = 600
+    page.window.resizable = True
+    page.window.center()
 
     content = ft.Container(expand=True)
 
