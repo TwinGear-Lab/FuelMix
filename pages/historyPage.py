@@ -1,5 +1,5 @@
 import flet as ft
-from history_storage import load_history, clear_history
+from history_storage import load_history, clear_history, delete_history_record
 from datetime import datetime
 
 
@@ -31,18 +31,23 @@ def view(page: ft.Page):
 
         if not history:
             history_list.controls.append(
-                ft.Container(
-                    bgcolor=ft.Colors.SURFACE_CONTAINER,
-                    border_radius=12,
-                    padding=30,
-                    content=ft.Column(
-                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                        controls=[
-                            ft.Icon(ft.Icons.HISTORY, size=50, color=ft.Colors.GREY_400),
-                            ft.Text("История пуста", size=18, weight=ft.FontWeight.BOLD),
-                            ft.Text("Выполните расчет на главной странице", size=14, color=ft.Colors.GREY_400),
-                        ]
-                    )
+                ft.Row(
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    controls=[
+                        ft.Container(
+                            bgcolor=ft.Colors.SURFACE_CONTAINER,
+                            border_radius=12,
+                            padding=30,
+                            content=ft.Column(
+                                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                controls=[
+                                    ft.Icon(ft.Icons.HISTORY, size=50, color=ft.Colors.GREY_400),
+                                    ft.Text("История пуста", size=18, weight=ft.FontWeight.BOLD),
+                                    ft.Text("Выполните расчет на главной странице", size=14, color=ft.Colors.GREY_400),
+                                ]
+                            )
+                        )
+                    ]
                 )
             )
         else:
@@ -158,6 +163,13 @@ def view(page: ft.Page):
                                         ],
                                         spacing=2,
                                     ),
+                                    ft.IconButton(
+                                        icon=ft.Icons.DELETE_OUTLINE,
+                                        icon_color=ft.Colors.RED,
+                                        icon_size=20,
+                                        tooltip="Удалить запись",
+                                        on_click=lambda e, i=idx: delete_single_record(i),
+                                    ),
                                 ],
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                             ),
@@ -246,12 +258,11 @@ def view(page: ft.Page):
                     bgcolor=ft.Colors.GREEN,
                 )
                 page.snack_bar.open = True
-                page.update()
-            page.dialog.open = False
+            dialog.open = False
             page.update()
 
         def cancel_clear(e):
-            page.dialog.open = False
+            dialog.open = False
             page.update()
 
         dialog = ft.AlertDialog(
@@ -264,7 +275,39 @@ def view(page: ft.Page):
             actions_alignment=ft.MainAxisAlignment.END,
         )
 
-        page.dialog = dialog
+        page.overlay.append(dialog)
+        dialog.open = True
+        page.update()
+
+    def delete_single_record(idx):
+        """Удаляет одну запись истории с подтверждением"""
+
+        def confirm_delete(e):
+            if delete_history_record(idx):
+                refresh_history()
+                page.snack_bar = ft.SnackBar(
+                    ft.Text("Запись удалена!"),
+                    bgcolor=ft.Colors.GREEN,
+                )
+                page.snack_bar.open = True
+            dialog.open = False
+            page.update()
+
+        def cancel_delete(e):
+            dialog.open = False
+            page.update()
+
+        dialog = ft.AlertDialog(
+            title=ft.Text("Удаление записи"),
+            content=ft.Text("Вы уверены, что хотите удалить эту запись из истории?"),
+            actions=[
+                ft.TextButton("Отмена", on_click=cancel_delete),
+                ft.TextButton("Удалить", on_click=confirm_delete, style=ft.ButtonStyle(color=ft.Colors.RED)),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+
+        page.overlay.append(dialog)
         dialog.open = True
         page.update()
 

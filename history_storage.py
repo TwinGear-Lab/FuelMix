@@ -38,3 +38,11 @@ def add_history_record(record):
 def clear_history():
     """Очищает всю историю"""
     return save_history([])
+
+def delete_history_record(index):
+    """Удаляет одну запись истории по индексу"""
+    history = load_history()
+    if 0 <= index < len(history):
+        history.pop(index)
+        return save_history(history)
+    return False
