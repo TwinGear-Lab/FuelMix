@@ -203,6 +203,7 @@ def view(page: ft.Page):
         expand=True,
         padding=12,
         content=ft.Column(
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             scroll=ft.ScrollMode.AUTO,
             spacing=15,
             controls=[
@@ -222,7 +223,7 @@ def view(page: ft.Page):
                 ft.Container(
                     bgcolor=ft.Colors.SURFACE_CONTAINER,
                     border_radius=15,
-                    padding=20,
+                    padding=10,
                     content=ft.Column(
                         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                         controls=[
@@ -254,7 +255,7 @@ def view(page: ft.Page):
                             expand=True,
                             bgcolor=ft.Colors.SURFACE_CONTAINER,
                             border_radius=12,
-                            padding=15,
+                            padding=10,
                             content=ft.Column(
                                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                                 controls=[
@@ -265,7 +266,7 @@ def view(page: ft.Page):
                                     changes_display,
                                     ft.Text(
                                         "Смешиваний",
-                                        size=12,
+                                        size=10,
                                     ),
                                 ],
                             ),
@@ -274,7 +275,7 @@ def view(page: ft.Page):
                             expand=True,
                             bgcolor=ft.Colors.SURFACE_CONTAINER,
                             border_radius=12,
-                            padding=15,
+                            padding=10,
                             content=ft.Column(
                                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                                 controls=[
@@ -285,7 +286,7 @@ def view(page: ft.Page):
                                     liters_display,
                                     ft.Text(
                                         "Литров",
-                                        size=12,
+                                        size=10,
                                     ),
                                 ],
                             ),
@@ -294,7 +295,7 @@ def view(page: ft.Page):
                             expand=True,
                             bgcolor=ft.Colors.SURFACE_CONTAINER,
                             border_radius=12,
-                            padding=15,
+                            padding=10,
                             content=ft.Column(
                                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                                 controls=[
@@ -305,7 +306,7 @@ def view(page: ft.Page):
                                     ron_display,
                                     ft.Text(
                                         "Средний RON",
-                                        size=12,
+                                        size=10,
                                     ),
                                 ],
                             ),
@@ -322,7 +323,7 @@ def view(page: ft.Page):
 
                 ft.Container(
                     bgcolor=ft.Colors.SURFACE_CONTAINER,
-                    border_radius=15,
+                    border_radius=10,
                     content=ft.Column(
                         controls=[
                             notification_item,
@@ -334,6 +335,7 @@ def view(page: ft.Page):
 
                 # Кнопка выхода
                 ft.FilledButton(
+
                     "Обнулить значения",
                     icon=ft.Icons.RESTORE,
                     on_click=reset_values,

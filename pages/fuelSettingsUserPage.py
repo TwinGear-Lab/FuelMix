@@ -1,7 +1,6 @@
 import flet as ft
 import json
 import os
-from theme import constrain_width
 
 # Путь к файлу с данными (корень проекта)
 DATA_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dataAGS.json")
@@ -50,6 +49,7 @@ def view(page: ft.Page):
         options=[
             ft.dropdown.Option(station) for station in gas_stations_rf
         ],
+        expand=True,
     )
 
     # Если есть АЗС, выбираем первую по умолчанию
@@ -77,36 +77,39 @@ def view(page: ft.Page):
         station_card = ft.Container(
             bgcolor=ft.Colors.SURFACE_CONTAINER,
             border_radius=12,
-            padding=20,
+            padding=15,
             content=ft.Column(
+                spacing=10,
                 controls=[
                     ft.Row(
                         controls=[
                             ft.Text(
                                 station_name,
-                                size=22,
+                                size=20,
                                 weight=ft.FontWeight.BOLD,
                                 expand=True,
                             ),
                             ft.IconButton(
                                 icon=ft.Icons.EDIT,
+                                icon_size=22,
                                 icon_color=ft.Colors.BLUE,
                                 tooltip="Редактировать название АЗС",
                                 on_click=lambda e: show_edit_station_dialog(station_name),
                             ),
                             ft.IconButton(
                                 icon=ft.Icons.DELETE,
+                                icon_size=22,
                                 icon_color=ft.Colors.RED,
                                 tooltip="Удалить АЗС",
                                 on_click=lambda e: show_delete_dialog(station_name),
                             ),
                         ]
                     ),
-                    ft.Divider(height=10),
+                    ft.Divider(height=1),
                     # Список топлива
                     ft.Text(
                         "Топливо на заправке:",
-                        size=16,
+                        size=14,
                         weight=ft.FontWeight.BOLD,
                     ),
                     ft.Column(
@@ -114,12 +117,13 @@ def view(page: ft.Page):
                             create_fuel_row(station_name, fuel_name, octane)
                             for fuel_name, octane in fuels.items()
                         ],
-                        spacing=8,
+                        spacing=6,
                     ),
                     ft.Row(
                         controls=[
                             ft.IconButton(
                                 icon=ft.Icons.ADD,
+                                icon_size=24,
                                 icon_color=ft.Colors.GREEN,
                                 tooltip="Добавить топливо",
                                 on_click=lambda e: show_add_fuel_dialog(station_name),
@@ -128,7 +132,6 @@ def view(page: ft.Page):
                         alignment=ft.MainAxisAlignment.END,
                     ),
                 ],
-                spacing=10,
             ),
         )
 
@@ -139,11 +142,12 @@ def view(page: ft.Page):
         """Создает строку с информацией о топливе"""
         fuel_octane_field = ft.TextField(
             value=str(octane),
-            width=80,
+            width=70,
             text_align=ft.TextAlign.CENTER,
             keyboard_type=ft.KeyboardType.NUMBER,
             input_filter=ft.NumbersOnlyInputFilter(),
             dense=True,
+            height=40,
         )
 
         def save_fuel_change(e):
@@ -196,11 +200,8 @@ def view(page: ft.Page):
 
                 data = load_data()
                 if station_name in data and fuel_name in data[station_name]:
-                    # Получаем значение октана
                     octane_value = data[station_name][fuel_name]
-                    # Удаляем старый ключ
                     del data[station_name][fuel_name]
-                    # Добавляем новый ключ с тем же значением
                     data[station_name][new_name] = octane_value
                     if save_data(data):
                         dialog.open = False
@@ -247,35 +248,36 @@ def view(page: ft.Page):
                     page.update()
 
         return ft.Container(
-            padding=5,
+            padding=5,  # Изменено: просто число вместо symmetric
             content=ft.Row(
                 controls=[
-                    ft.Text(fuel_name, expand=True, size=15, weight=ft.FontWeight.W_500),
+                    ft.Text(fuel_name, expand=True, size=14, weight=ft.FontWeight.W_500),
                     ft.IconButton(
                         icon=ft.Icons.EDIT,
-                        icon_size=18,
+                        icon_size=16,
                         icon_color=ft.Colors.BLUE,
                         tooltip="Редактировать название",
                         on_click=edit_fuel_name,
                     ),
                     fuel_octane_field,
-                    ft.Text("ОЧ", size=13),
+                    ft.Text("ОЧ", size=12),
                     ft.IconButton(
                         icon=ft.Icons.SAVE,
-                        icon_size=20,
+                        icon_size=18,
                         icon_color=ft.Colors.GREEN,
                         tooltip="Сохранить ОЧ",
                         on_click=save_fuel_change,
                     ),
                     ft.IconButton(
                         icon=ft.Icons.DELETE_OUTLINE,
-                        icon_size=20,
+                        icon_size=18,
                         icon_color=ft.Colors.RED,
                         tooltip="Удалить топливо",
                         on_click=delete_fuel,
                     ),
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                spacing=2,
             ),
         )
 
@@ -316,11 +318,8 @@ def view(page: ft.Page):
                 return
 
             if old_name in data:
-                # Сохраняем данные старой АЗС
                 station_data = data[old_name]
-                # Удаляем старую АЗС
                 del data[old_name]
-                # Добавляем с новым именем
                 data[new_name] = station_data
                 if save_data(data):
                     dialog.open = False
@@ -353,7 +352,7 @@ def view(page: ft.Page):
         page.update()
 
     def show_delete_dialog(station_name):
-        """Показывает диалог подтверждения удаления АЗС (создается каждый раз заново)"""
+        """Показывает диалог подтверждения удаления АЗС"""
         print(f"Открытие диалога удаления для: {station_name}")
 
         def confirm_delete(e):
@@ -408,7 +407,7 @@ def view(page: ft.Page):
         page.update()
 
     def show_add_station_dialog(e):
-        """Показывает диалог добавления новой АЗС (создается каждый раз заново)"""
+        """Показывает диалог добавления новой АЗС"""
         print("Открытие диалога добавления АЗС")
 
         station_name_field = ft.TextField(
@@ -471,15 +470,15 @@ def view(page: ft.Page):
         page.overlay.append(dialog)
         dialog.open = True
         page.update()
-        print("Диалог добавления АЗС открыт")
 
     def show_add_fuel_dialog(station_name):
-        """Показывает диалог добавления нового топлива (создается каждый раз заново)"""
+        """Показывает диалог добавления нового топлива"""
         print(f"Открытие диалога добавления топлива для: {station_name}")
 
         fuel_name_field = ft.TextField(
             label="Название топлива",
             hint_text="Например: АИ-95",
+            width=250,
         )
         fuel_octane_field = ft.TextField(
             label="Октановое число",
@@ -561,9 +560,7 @@ def view(page: ft.Page):
                     fuel_name_field,
                     fuel_octane_field,
                 ],
-                horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
                 spacing=10,
-                width=250,
             ),
             actions=[
                 ft.TextButton("Отмена", on_click=cancel_add),
@@ -575,28 +572,26 @@ def view(page: ft.Page):
         page.overlay.append(dialog)
         dialog.open = True
         page.update()
-        print(f"Диалог добавления топлива для {station_name} открыт")
 
-    # Создаем страницу
-    result = constrain_width(page, ft.Container(
+    # Создаем страницу с адаптивной версткой
+    return ft.Container(
         expand=True,
         padding=12,
         content=ft.Column(
             scroll=ft.ScrollMode.AUTO,
+            spacing=10,
             controls=[
                 ft.Row(
                     controls=[
-                        ft.Container(width=48),
                         ft.Text(
                             "Настройки АЗС",
-                            size=30,
+                            size=24,
                             weight="bold",
                             expand=True,
-                            text_align=ft.TextAlign.CENTER,
                         ),
                         ft.IconButton(
                             icon=ft.Icons.ADD,
-                            icon_size=30,
+                            icon_size=28,
                             tooltip="Добавить АЗС",
                             on_click=show_add_station_dialog,
                         ),
@@ -604,7 +599,8 @@ def view(page: ft.Page):
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 ),
 
-                ft.Divider(height=10),
+                ft.Divider(height=1),
+
                 # Выпадающий список и кнопка загрузки
                 ft.Column(
                     controls=[
@@ -612,29 +608,22 @@ def view(page: ft.Page):
                         ft.FilledButton(
                             content=ft.Row(
                                 controls=[
-                                    ft.Icon(ft.Icons.SETTINGS),
+                                    ft.Icon(ft.Icons.SETTINGS, size=18),
                                     ft.Text("Редактировать"),
                                 ],
                                 alignment=ft.MainAxisAlignment.CENTER,
                             ),
                             on_click=load_station_data,
-                            height=45,
+                            height=40,
                         ),
                     ],
-                    horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
-                    spacing=10,
+                    spacing=8,
                 ),
-                ft.Divider(height=20),
+
+                ft.Divider(height=1),
+
                 # Контейнер для выбранной АЗС
                 selected_station_container,
             ],
         ),
-    ))
-
-    # Загружаем первую АЗС если есть
-    if gas_stations_rf:
-        load_station_data(None)
-    else:
-        selected_station_container.content = ft.Text("Нет доступных АЗС. Добавьте новую АЗС с помощью кнопки '+'")
-
-    return result
+    )
