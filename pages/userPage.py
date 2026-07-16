@@ -1,8 +1,4 @@
 import flet as ft
-import os
-import shutil
-import time
-import asyncio
 from theme import get_theme_name, get_theme_colors
 
 GREEN = ft.Colors.GREEN
@@ -13,65 +9,8 @@ countChange = 0
 countLiters = 0
 countRON = 0
 
-# Глобальные переменные
-current_avatar = None
-avatar_gesture_ref = None
-file_picker = None
-
-
-def clear_avatars_folder():
-    """Удаляет все файлы из папки avatars"""
-    try:
-        avatars_dir = "avatars"
-        if os.path.exists(avatars_dir):
-            for file in os.listdir(avatars_dir):
-                file_path = os.path.join(avatars_dir, file)
-                if os.path.isfile(file_path):
-                    os.remove(file_path)
-                    print(f"Удален старый аватар: {file}")
-    except Exception as e:
-        print(f"Ошибка при очистке папки аватаров: {e}")
-
-
-def save_avatar_image(file_path):
-    """Сохраняет изображение аватара в папку приложения с уникальным именем"""
-    try:
-        avatars_dir = "avatars"
-        if not os.path.exists(avatars_dir):
-            os.makedirs(avatars_dir)
-
-        ext = os.path.splitext(file_path)[1]
-        timestamp = int(time.time())
-        new_filename = f"avatar_{timestamp}{ext}"
-        new_path = os.path.join(avatars_dir, new_filename)
-
-        shutil.copy2(file_path, new_path)
-        print(f"Аватар сохранен: {new_filename}")
-        return new_path
-    except Exception as e:
-        print(f"Ошибка при сохранении аватара: {e}")
-        return None
-
-
-def get_avatar_from_storage():
-    """Получает последний сохраненный аватар"""
-    try:
-        avatars_dir = "avatars"
-        if os.path.exists(avatars_dir):
-            files = [f for f in os.listdir(avatars_dir) if f.startswith("avatar_")]
-            if files:
-                files.sort(reverse=True)
-                latest_file = files[0]
-                print(f"Загружен аватар: {latest_file}")
-                return os.path.join(avatars_dir, latest_file)
-    except Exception as e:
-        print(f"Ошибка при загрузке аватара: {e}")
-    return None
-
 
 def view(page: ft.Page):
-    global current_avatar, avatar_gesture_ref, file_picker
-
     # Получаем цвета для текущей темы
     colors = get_theme_colors()
 
@@ -141,7 +80,7 @@ def view(page: ft.Page):
         page.update()
 
     def reset_values(e):
-        global countChange, countLiters, countRON, setMessage
+        global countChange, countLiters, countRON
 
         countChange = 0
         countLiters = 0
@@ -159,179 +98,18 @@ def view(page: ft.Page):
         page.update()
         print("Значения обнулены")
 
-    # ===== ФУНКЦИЯ ДЛЯ ВЫБОРА ФАЙЛА (КРОСС-ПЛАТФОРМЕННАЯ) =====
-    def on_avatar_click(e):
-        """Открывает диалог выбора файла (работает на всех платформах)"""
-        global file_picker
-        print("Аватар нажат - открываем выбор файла")
-
-        # Создаем FilePicker если его еще нет
-        if file_picker is None:
-            file_picker = ft.FilePicker()
-
-            # Обработчик выбора файла
-            def on_picked(e: ft.FilePickerResultEvent):
-                if e.files:
-                    selected_file = e.files[0]
-                    process_selected_file(selected_file.path)
-                else:
-                    page.snack_bar = ft.SnackBar(
-                        ft.Text("Выбор файла отменен"),
-                        bgcolor=ft.Colors.GREY,
-                    )
-                    page.snack_bar.open = True
-                    page.update()
-
-            # Привязываем обработчик
-            file_picker.on_result = on_picked
-
-            page.overlay.append(file_picker)
-            page.update()
-
-        # Открываем диалог выбора файла (используем asyncio для вызова асинхронного метода)
-        async def pick_files_async():
-            try:
-                # Пробуем разные методы для совместимости
-                if hasattr(file_picker, 'pick_files_async'):
-                    await file_picker.pick_files_async(
-                        allow_multiple=False,
-                        allowed_extensions=["png", "jpg", "jpeg", "gif", "bmp", "webp"],
-                        dialog_title="Выберите изображение для аватара"
-                    )
-                else:
-                    # Для старых версий Flet
-                    file_picker.pick_files(
-                        allow_multiple=False,
-                        allowed_extensions=["png", "jpg", "jpeg", "gif", "bmp", "webp"],
-                        dialog_title="Выберите изображение для аватара"
-                    )
-            except Exception as e:
-                print(f"Ошибка при открытии диалога: {e}")
-                page.snack_bar = ft.SnackBar(
-                    ft.Text("Ошибка открытия диалога выбора файла"),
-                    bgcolor=ft.Colors.RED,
-                )
-                page.snack_bar.open = True
-                page.update()
-
-        # Запускаем асинхронную функцию
-        try:
-            # Пробуем использовать asyncio
-            asyncio.create_task(pick_files_async())
-        except:
-            # Если asyncio не работает, пробуем другой способ
-            try:
-                # Для некоторых версий Flet
-                page.run_task(pick_files_async)
-            except:
-                # Самый простой способ - запустить в отдельном потоке
-                def run_async():
-                    asyncio.run(pick_files_async())
-
-                import threading
-                thread = threading.Thread(target=run_async, daemon=True)
-                thread.start()
-
-    def process_selected_file(file_path):
-        """Обрабатывает выбранный файл"""
-        global current_avatar
-
-        if not file_path:
-            return
-
-        try:
-            # Очищаем старые аватары
-            clear_avatars_folder()
-
-            # Сохраняем новый аватар
-            saved_path = save_avatar_image(file_path)
-
-            if saved_path:
-                # Создаем новый аватар
-                new_avatar = ft.Container(
-                    bgcolor=None,
-                    width=100,
-                    height=100,
-                    border_radius=50,
-                    content=ft.Image(
-                        src=saved_path,
-                        width=100,
-                        height=100,
-                        fit="cover",
-                    )
-                )
-
-                # Обновляем глобальную переменную
-                current_avatar = new_avatar
-
-                # Обновляем содержимое GestureDetector
-                if avatar_gesture_ref:
-                    avatar_gesture_ref.content = new_avatar
-                    page.update()
-
-                page.snack_bar = ft.SnackBar(
-                    ft.Text("Аватар успешно обновлен!"),
-                    bgcolor=GREEN,
-                )
-                page.snack_bar.open = True
-                page.update()
-            else:
-                page.snack_bar = ft.SnackBar(
-                    ft.Text("Ошибка при сохранении аватара!"),
-                    bgcolor=ft.Colors.RED,
-                )
-                page.snack_bar.open = True
-                page.update()
-        except Exception as err:
-            print(f"Ошибка при обновлении аватара: {err}")
-            page.snack_bar = ft.SnackBar(
-                ft.Text("Ошибка при обновлении аватара!"),
-                bgcolor=ft.Colors.RED,
-            )
-            page.snack_bar.open = True
-            page.update()
-
-    # Загружаем сохраненный аватар
-    avatar_image_path = get_avatar_from_storage()
-
-    # Создаем аватар
-    if avatar_image_path and os.path.exists(avatar_image_path):
-        avatar = ft.Container(
-            bgcolor=None,
-            width=100,
-            height=100,
-            border_radius=50,
-            content=ft.Image(
-                src=avatar_image_path,
-                width=100,
-                height=100,
-                fit="cover",
-            )
+    # Создаем аватар (только стандартная иконка)
+    avatar = ft.Container(
+        bgcolor=GREEN,
+        width=100,
+        height=100,
+        border_radius=50,
+        content=ft.Icon(
+            ft.Icons.PERSON,
+            size=50,
+            color=ft.Colors.WHITE,
         )
-    else:
-        avatar = ft.Container(
-            bgcolor=GREEN,
-            width=100,
-            height=100,
-            border_radius=50,
-            content=ft.Icon(
-                ft.Icons.PERSON,
-                size=50,
-                color=ft.Colors.WHITE,
-            )
-        )
-
-    # Сохраняем текущий аватар в глобальную переменную
-    current_avatar = avatar
-
-    # Создаем GestureDetector и сохраняем ссылку на него
-    avatar_gesture = ft.GestureDetector(
-        content=avatar,
-        on_tap=on_avatar_click,
     )
-
-    # Сохраняем ссылку на GestureDetector для обновления
-    avatar_gesture_ref = avatar_gesture
 
     # Создаем кнопки настроек
     notification_item = ft.Container(
@@ -439,7 +217,7 @@ def view(page: ft.Page):
                 content=ft.Column(
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     controls=[
-                        avatar_gesture,
+                        avatar,
                         ft.Container(height=10),
                         ft.Text(
                             "Водитель",

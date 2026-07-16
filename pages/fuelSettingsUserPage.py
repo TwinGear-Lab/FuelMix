@@ -44,7 +44,7 @@ def view(page: ft.Page):
 
     # Выпадающий список для выбора АЗС
     station_dropdown = ft.Dropdown(
-        width=350,
+        width=200,
         label="Выберите АЗС",
         hint_text="Выберите АЗС из списка",
         options=[
@@ -55,11 +55,6 @@ def view(page: ft.Page):
     # Если есть АЗС, выбираем первую по умолчанию
     if gas_stations_rf:
         station_dropdown.value = gas_stations_rf[0]
-
-    # Переменные для хранения диалогов
-    add_station_dialog = None
-    add_fuel_dialog = None
-    delete_dialog = None
 
     def load_station_data(e):
         """Загружает данные выбранной АЗС (по нажатию кнопки)"""
@@ -92,6 +87,12 @@ def view(page: ft.Page):
                                 size=22,
                                 weight=ft.FontWeight.BOLD,
                                 expand=True,
+                            ),
+                            ft.IconButton(
+                                icon=ft.Icons.EDIT,
+                                icon_color=ft.Colors.BLUE,
+                                tooltip="Редактировать название АЗС",
+                                on_click=lambda e: show_edit_station_dialog(station_name),
                             ),
                             ft.IconButton(
                                 icon=ft.Icons.DELETE,
@@ -167,6 +168,69 @@ def view(page: ft.Page):
                 page.snack_bar.open = True
                 page.update()
 
+        def edit_fuel_name(e):
+            """Показывает диалог для изменения названия топлива"""
+            print(f"Редактирование названия топлива: {fuel_name}")
+
+            fuel_name_field = ft.TextField(
+                label="Новое название топлива",
+                value=fuel_name,
+                width=300,
+            )
+
+            def save_fuel_name(e):
+                new_name = fuel_name_field.value.strip()
+                if not new_name:
+                    page.snack_bar = ft.SnackBar(
+                        ft.Text("Введите название топлива!"),
+                        bgcolor=ft.Colors.RED,
+                    )
+                    page.snack_bar.open = True
+                    page.update()
+                    return
+
+                if new_name == fuel_name:
+                    dialog.open = False
+                    page.update()
+                    return
+
+                data = load_data()
+                if station_name in data and fuel_name in data[station_name]:
+                    # Получаем значение октана
+                    octane_value = data[station_name][fuel_name]
+                    # Удаляем старый ключ
+                    del data[station_name][fuel_name]
+                    # Добавляем новый ключ с тем же значением
+                    data[station_name][new_name] = octane_value
+                    if save_data(data):
+                        dialog.open = False
+                        update_dropdown()
+                        load_station_data(None)
+                        page.snack_bar = ft.SnackBar(
+                            ft.Text(f"Название топлива изменено на '{new_name}'"),
+                            bgcolor=ft.Colors.GREEN,
+                        )
+                        page.snack_bar.open = True
+                        page.update()
+
+            def cancel_edit(e):
+                dialog.open = False
+                page.update()
+
+            dialog = ft.AlertDialog(
+                title=ft.Text("Редактирование названия топлива"),
+                content=fuel_name_field,
+                actions=[
+                    ft.TextButton("Отмена", on_click=cancel_edit),
+                    ft.FilledButton("Сохранить", on_click=save_fuel_name),
+                ],
+                actions_alignment=ft.MainAxisAlignment.END,
+            )
+
+            page.overlay.append(dialog)
+            dialog.open = True
+            page.update()
+
         def delete_fuel(e):
             print(f"Удаление топлива: {station_name} -> {fuel_name}")
             data = load_data()
@@ -187,13 +251,20 @@ def view(page: ft.Page):
             content=ft.Row(
                 controls=[
                     ft.Text(fuel_name, expand=True, size=15, weight=ft.FontWeight.W_500),
+                    ft.IconButton(
+                        icon=ft.Icons.EDIT,
+                        icon_size=18,
+                        icon_color=ft.Colors.BLUE,
+                        tooltip="Редактировать название",
+                        on_click=edit_fuel_name,
+                    ),
                     fuel_octane_field,
                     ft.Text("ОЧ", size=13),
                     ft.IconButton(
                         icon=ft.Icons.SAVE,
                         icon_size=20,
                         icon_color=ft.Colors.GREEN,
-                        tooltip="Сохранить",
+                        tooltip="Сохранить ОЧ",
                         on_click=save_fuel_change,
                     ),
                     ft.IconButton(
@@ -208,9 +279,81 @@ def view(page: ft.Page):
             ),
         )
 
+    def show_edit_station_dialog(old_name):
+        """Показывает диалог для изменения названия АЗС"""
+        print(f"Редактирование названия АЗС: {old_name}")
+
+        station_name_field = ft.TextField(
+            label="Новое название АЗС",
+            value=old_name,
+            width=300,
+        )
+
+        def save_station_name(e):
+            new_name = station_name_field.value.strip()
+            if not new_name:
+                page.snack_bar = ft.SnackBar(
+                    ft.Text("Введите название АЗС!"),
+                    bgcolor=ft.Colors.RED,
+                )
+                page.snack_bar.open = True
+                page.update()
+                return
+
+            if new_name == old_name:
+                dialog.open = False
+                page.update()
+                return
+
+            data = load_data()
+            if new_name in data and new_name != old_name:
+                page.snack_bar = ft.SnackBar(
+                    ft.Text("Такая АЗС уже существует!"),
+                    bgcolor=ft.Colors.RED,
+                )
+                page.snack_bar.open = True
+                page.update()
+                return
+
+            if old_name in data:
+                # Сохраняем данные старой АЗС
+                station_data = data[old_name]
+                # Удаляем старую АЗС
+                del data[old_name]
+                # Добавляем с новым именем
+                data[new_name] = station_data
+                if save_data(data):
+                    dialog.open = False
+                    update_dropdown()
+                    station_dropdown.value = new_name
+                    load_station_data(None)
+                    page.snack_bar = ft.SnackBar(
+                        ft.Text(f"АЗС переименована в '{new_name}'"),
+                        bgcolor=ft.Colors.GREEN,
+                    )
+                    page.snack_bar.open = True
+                    page.update()
+
+        def cancel_edit(e):
+            dialog.open = False
+            page.update()
+
+        dialog = ft.AlertDialog(
+            title=ft.Text("Редактирование названия АЗС"),
+            content=station_name_field,
+            actions=[
+                ft.TextButton("Отмена", on_click=cancel_edit),
+                ft.FilledButton("Сохранить", on_click=save_station_name),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+
+        page.overlay.append(dialog)
+        dialog.open = True
+        page.update()
+
     def show_delete_dialog(station_name):
-        """Показывает диалог подтверждения удаления АЗС"""
-        nonlocal delete_dialog
+        """Показывает диалог подтверждения удаления АЗС (создается каждый раз заново)"""
         print(f"Открытие диалога удаления для: {station_name}")
 
         def confirm_delete(e):
@@ -235,27 +378,26 @@ def view(page: ft.Page):
                     )
                     page.snack_bar.open = True
                     page.update()
-            delete_dialog.open = False
+            dialog.open = False
             page.update()
 
         def cancel_delete(e):
             print("Отмена удаления")
-            delete_dialog.open = False
+            dialog.open = False
             page.update()
 
-        if delete_dialog is None:
-            delete_dialog = ft.AlertDialog(
-                title=ft.Text("Подтверждение удаления"),
-                actions=[
-                    ft.TextButton("Отмена", on_click=cancel_delete),
-                    ft.TextButton("Удалить", on_click=confirm_delete, style=ft.ButtonStyle(color=ft.Colors.RED)),
-                ],
-                actions_alignment=ft.MainAxisAlignment.END,
-            )
-            page.overlay.append(delete_dialog)
+        dialog = ft.AlertDialog(
+            title=ft.Text("Подтверждение удаления"),
+            content=ft.Text(f"Вы уверены, что хотите удалить АЗС '{station_name}' и все ее топливо?"),
+            actions=[
+                ft.TextButton("Отмена", on_click=cancel_delete),
+                ft.TextButton("Удалить", on_click=confirm_delete, style=ft.ButtonStyle(color=ft.Colors.RED)),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
 
-        delete_dialog.content = ft.Text(f"Вы уверены, что хотите удалить АЗС '{station_name}' и все ее топливо?")
-        delete_dialog.open = True
+        page.overlay.append(dialog)
+        dialog.open = True
         page.update()
 
     def update_dropdown():
@@ -266,8 +408,7 @@ def view(page: ft.Page):
         page.update()
 
     def show_add_station_dialog(e):
-        """Показывает диалог добавления новой АЗС"""
-        nonlocal add_station_dialog
+        """Показывает диалог добавления новой АЗС (создается каждый раз заново)"""
         print("Открытие диалога добавления АЗС")
 
         station_name_field = ft.TextField(
@@ -301,7 +442,7 @@ def view(page: ft.Page):
 
             data[name] = {}
             if save_data(data):
-                add_station_dialog.open = False
+                dialog.open = False
                 update_dropdown()
                 station_dropdown.value = name
                 load_station_data(None)
@@ -314,28 +455,26 @@ def view(page: ft.Page):
 
         def cancel_add(e):
             print("Отмена добавления АЗС")
-            add_station_dialog.open = False
+            dialog.open = False
             page.update()
 
-        if add_station_dialog is None:
-            add_station_dialog = ft.AlertDialog(
-                title=ft.Text("Добавить новую АЗС"),
-                actions=[
-                    ft.TextButton("Отмена", on_click=cancel_add),
-                    ft.FilledButton("Добавить", on_click=add_station),
-                ],
-                actions_alignment=ft.MainAxisAlignment.END,
-            )
-            page.overlay.append(add_station_dialog)
+        dialog = ft.AlertDialog(
+            title=ft.Text("Добавить новую АЗС"),
+            content=station_name_field,
+            actions=[
+                ft.TextButton("Отмена", on_click=cancel_add),
+                ft.FilledButton("Добавить", on_click=add_station),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
 
-        add_station_dialog.content = station_name_field
-        add_station_dialog.open = True
+        page.overlay.append(dialog)
+        dialog.open = True
         page.update()
         print("Диалог добавления АЗС открыт")
 
     def show_add_fuel_dialog(station_name):
-        """Показывает диалог добавления нового топлива"""
-        nonlocal add_fuel_dialog
+        """Показывает диалог добавления нового топлива (создается каждый раз заново)"""
         print(f"Открытие диалога добавления топлива для: {station_name}")
 
         fuel_name_field = ft.TextField(
@@ -393,7 +532,7 @@ def view(page: ft.Page):
 
                 data[station_name][fuel_name] = octane
                 if save_data(data):
-                    add_fuel_dialog.open = False
+                    dialog.open = False
                     update_dropdown()
                     load_station_data(None)
                     page.snack_bar = ft.SnackBar(
@@ -413,30 +552,28 @@ def view(page: ft.Page):
 
         def cancel_add(e):
             print("Отмена добавления топлива")
-            add_fuel_dialog.open = False
+            dialog.open = False
             page.update()
 
-        if add_fuel_dialog is None:
-            add_fuel_dialog = ft.AlertDialog(
-                title=ft.Text("Добавить топливо"),
-                actions=[
-                    ft.TextButton("Отмена", on_click=cancel_add),
-                    ft.FilledButton("Добавить", on_click=add_fuel),
+        dialog = ft.AlertDialog(
+            title=ft.Text(f"Добавить топливо для {station_name}"),
+            content=ft.Column(
+                controls=[
+                    fuel_name_field,
+                    fuel_octane_field,
                 ],
-                actions_alignment=ft.MainAxisAlignment.END,
-            )
-            page.overlay.append(add_fuel_dialog)
-
-        add_fuel_dialog.title = ft.Text(f"Добавить топливо для {station_name}")
-        add_fuel_dialog.content = ft.Column(
-            controls=[
-                fuel_name_field,
-                fuel_octane_field,
+                spacing=10,
+                width=400,
+            ),
+            actions=[
+                ft.TextButton("Отмена", on_click=cancel_add),
+                ft.FilledButton("Добавить", on_click=add_fuel),
             ],
-            spacing=10,
-            width=400,
+            actions_alignment=ft.MainAxisAlignment.END,
         )
-        add_fuel_dialog.open = True
+
+        page.overlay.append(dialog)
+        dialog.open = True
         page.update()
         print(f"Диалог добавления топлива для {station_name} открыт")
 
@@ -475,13 +612,13 @@ def view(page: ft.Page):
                         ft.FilledButton(
                             content=ft.Row(
                                 controls=[
-                                    ft.Icon(ft.Icons.FILE_OPEN),
-                                    ft.Text("Загрузить"),
+                                    ft.Icon(ft.Icons.SETTINGS),
+                                    ft.Text("Редактировать"),
                                 ],
                                 alignment=ft.MainAxisAlignment.CENTER,
                             ),
                             on_click=load_station_data,
-                            width=150,
+                            width=200,
                             height=45,
                         ),
                     ],

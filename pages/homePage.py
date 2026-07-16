@@ -1,84 +1,180 @@
 import flet as ft
-from flet import value
 import json
-
+from datetime import datetime
+from history_storage import add_history_record
+import os
 
 
 def view(page: ft.Page):
-
+    # Загружаем данные АЗС
+    data_ags = {}
     gas_stations_rf = []
 
+    try:
+        if os.path.exists("dataAGS.json"):
+            with open("dataAGS.json", "r", encoding="utf-8") as file:
+                data_ags = json.load(file)
+                gas_stations_rf = list(data_ags.keys())
+    except Exception as e:
+        print(f"Ошибка загрузки данных АЗС: {e}")
 
-    with open("dataAGS.json", "r", encoding="utf-8") as file:
-        data = json.load(file)
-        gas_station = list(data.keys())
-        for i in range(len(gas_station)):
-            gas_stations_rf.append(gas_station[i])
+    # Функция для обновления списка топлива при выборе АЗС
+    def update_fuel_types(e, dropdown_azs, dropdown_fuel, octane_field):
+        """Обновляет список топлива при выборе АЗС"""
+        station_name = dropdown_azs.value
+        print(f"Выбрана АЗС: {station_name}")
 
-    # Создаем поля ввода с привязкой к переменным
+        if station_name and station_name in data_ags:
+            fuels = list(data_ags[station_name].keys())
+            print(f"Найдено топливо: {fuels}")
+
+            dropdown_fuel.options = [ft.dropdown.Option(fuel) for fuel in fuels]
+            dropdown_fuel.value = None
+            octane_field.value = ""
+            page.update()
+
+    # Функция для автоматической подстановки октанового числа
+    def auto_fill_octane(e, dropdown_azs, dropdown_fuel, octane_field):
+        """Автоматически подставляет октановое число при выборе топлива"""
+        station_name = dropdown_azs.value
+        fuel_name = dropdown_fuel.value
+        print(f"Выбрано топливо: {fuel_name} для АЗС: {station_name}")
+
+        if station_name and fuel_name and station_name in data_ags:
+            if fuel_name in data_ags[station_name]:
+                octane_value = data_ags[station_name][fuel_name]
+                octane_field.value = str(octane_value)
+                page.update()
+
+    # Функция для отображения/скрытия блока топлива в баке
+    def toggle_tank_visible(e):
+        """Показывает или скрывает блок топлива в баке"""
+        if tank_checkbox.value:
+            tank_container.visible = True
+        else:
+            tank_container.visible = False
+            # Очищаем поля при скрытии
+            tank_azs.value = None
+            tank_fuel_type.value = None
+            tank_fuel_type.options = []
+            tank_octane.value = ""
+            tank_volume.value = ""
+        page.update()
+
+    # Создаем поля ввода
     # Топливо в баке
-    tank_azs = ft.Dropdown(
-        width=200,
-        label="АЗС",
-        hint_text="Выберите АЗС",
-        options=[ft.dropdown.Option(station) for station in gas_stations_rf],
-    )
-    tank_fuel_type = ft.Dropdown(
-        width=200,
-        label="Тип топлива",
-        hint_text="Выберите топливо",
-        options=[
-            ft.dropdown.Option("АИ-92"),
-            ft.dropdown.Option("АИ-95"),
-            ft.dropdown.Option("АИ-98"),
-            ft.dropdown.Option("АИ-100"),
-        ],
-    )
-    tank_octane = ft.TextField(
-        width=200,
-        hint_text="Октановое число",
-        suffix=ft.Text("ОЧ"),
-        keyboard_type=ft.KeyboardType.NUMBER,
-        input_filter=ft.NumbersOnlyInputFilter(),
-        filled=True,
-    )
-    tank_volume = ft.TextField(
-        width=200,
-        hint_text="Объем топлива",
-        suffix=ft.Text("л"),
-        keyboard_type=ft.KeyboardType.NUMBER,
-        input_filter=ft.NumbersOnlyInputFilter(),
-        filled=True,
+    tank_checkbox = ft.Checkbox(
+        value=False,
+        on_change=toggle_tank_visible,
     )
 
-    # Топливо для заправки №1
+    # Контейнер для топлива в баке (скрыт по умолчанию)
+    tank_container = ft.Container(
+        visible=False,
+        content=ft.Column(
+            controls=[
+                ft.Row(
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    spacing=10,
+                    controls=[
+                        tank_azs := ft.Dropdown(
+                            width=180,
+                            label="АЗС",
+                            hint_text="Выберите АЗС",
+                            options=[ft.dropdown.Option(station) for station in gas_stations_rf],
+                        ),
+                        tank_fuel_type := ft.Dropdown(
+                            width=180,
+                            label="Тип топлива",
+                            hint_text="Выберите топливо",
+                            options=[],
+                        ),
+                    ],
+                ),
+                ft.Row(
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    spacing=10,
+                    controls=[
+                        tank_octane := ft.TextField(
+                            width=180,
+                            hint_text="Октановое число",
+                            suffix=ft.Text("ОЧ"),
+                            keyboard_type=ft.KeyboardType.NUMBER,
+                            input_filter=ft.NumbersOnlyInputFilter(),
+                            filled=True,
+                        ),
+                        tank_volume := ft.TextField(
+                            width=180,
+                            hint_text="Объем топлива",
+                            suffix=ft.Text("л"),
+                            keyboard_type=ft.KeyboardType.NUMBER,
+                            input_filter=ft.NumbersOnlyInputFilter(),
+                            filled=True,
+                        ),
+                    ],
+                ),
+            ],
+            spacing=10,
+        ),
+    )
+
+    # Привязываем события для tank
+    if hasattr(tank_azs, 'on_select'):
+        tank_azs.on_select = lambda e: update_fuel_types(e, tank_azs, tank_fuel_type, tank_octane)
+    else:
+        try:
+            tank_azs.on_change = lambda e: update_fuel_types(e, tank_azs, tank_fuel_type, tank_octane)
+        except:
+            pass
+
+    if hasattr(tank_fuel_type, 'on_select'):
+        tank_fuel_type.on_select = lambda e: auto_fill_octane(e, tank_azs, tank_fuel_type, tank_octane)
+    else:
+        try:
+            tank_fuel_type.on_change = lambda e: auto_fill_octane(e, tank_azs, tank_fuel_type, tank_octane)
+        except:
+            pass
+
+    # Топливо для заправки №1 (октановое число только для чтения)
     fuel1_azs = ft.Dropdown(
-        width=200,
+        width=180,
         label="АЗС",
         hint_text="Выберите АЗС",
         options=[ft.dropdown.Option(station) for station in gas_stations_rf],
     )
+    if hasattr(fuel1_azs, 'on_select'):
+        fuel1_azs.on_select = lambda e: update_fuel_types(e, fuel1_azs, fuel1_type, fuel1_octane)
+    else:
+        try:
+            fuel1_azs.on_change = lambda e: update_fuel_types(e, fuel1_azs, fuel1_type, fuel1_octane)
+        except:
+            pass
+
     fuel1_type = ft.Dropdown(
-        width=200,
+        width=180,
         label="Тип топлива",
         hint_text="Выберите топливо",
-        options=[
-            ft.dropdown.Option("АИ-92"),
-            ft.dropdown.Option("АИ-95"),
-            ft.dropdown.Option("АИ-98"),
-            ft.dropdown.Option("АИ-100"),
-        ],
+        options=[],
     )
+    if hasattr(fuel1_type, 'on_select'):
+        fuel1_type.on_select = lambda e: auto_fill_octane(e, fuel1_azs, fuel1_type, fuel1_octane)
+    else:
+        try:
+            fuel1_type.on_change = lambda e: auto_fill_octane(e, fuel1_azs, fuel1_type, fuel1_octane)
+        except:
+            pass
+
     fuel1_octane = ft.TextField(
-        width=200,
+        width=180,
         hint_text="Октановое число",
         suffix=ft.Text("ОЧ"),
         keyboard_type=ft.KeyboardType.NUMBER,
         input_filter=ft.NumbersOnlyInputFilter(),
         filled=True,
+        read_only=True,  # Только для чтения
     )
     fuel1_volume = ft.TextField(
-        width=200,
+        width=180,
         hint_text="Объем топлива",
         suffix=ft.Text("л"),
         keyboard_type=ft.KeyboardType.NUMBER,
@@ -86,34 +182,46 @@ def view(page: ft.Page):
         filled=True,
     )
 
-    # Топливо для заправки №2
+    # Топливо для заправки №2 (октановое число только для чтения)
     fuel2_azs = ft.Dropdown(
-        width=200,
+        width=180,
         label="АЗС",
         hint_text="Выберите АЗС",
         options=[ft.dropdown.Option(station) for station in gas_stations_rf],
     )
+    if hasattr(fuel2_azs, 'on_select'):
+        fuel2_azs.on_select = lambda e: update_fuel_types(e, fuel2_azs, fuel2_type, fuel2_octane)
+    else:
+        try:
+            fuel2_azs.on_change = lambda e: update_fuel_types(e, fuel2_azs, fuel2_type, fuel2_octane)
+        except:
+            pass
+
     fuel2_type = ft.Dropdown(
-        width=200,
+        width=180,
         label="Тип топлива",
         hint_text="Выберите топливо",
-        options=[
-            ft.dropdown.Option("АИ-92"),
-            ft.dropdown.Option("АИ-95"),
-            ft.dropdown.Option("АИ-98"),
-            ft.dropdown.Option("АИ-100"),
-        ],
+        options=[],
     )
+    if hasattr(fuel2_type, 'on_select'):
+        fuel2_type.on_select = lambda e: auto_fill_octane(e, fuel2_azs, fuel2_type, fuel2_octane)
+    else:
+        try:
+            fuel2_type.on_change = lambda e: auto_fill_octane(e, fuel2_azs, fuel2_type, fuel2_octane)
+        except:
+            pass
+
     fuel2_octane = ft.TextField(
-        width=200,
+        width=180,
         hint_text="Октановое число",
         suffix=ft.Text("ОЧ"),
         keyboard_type=ft.KeyboardType.NUMBER,
         input_filter=ft.NumbersOnlyInputFilter(),
         filled=True,
+        read_only=True,  # Только для чтения
     )
     fuel2_volume = ft.TextField(
-        width=200,
+        width=180,
         hint_text="Объем топлива",
         suffix=ft.Text("л"),
         keyboard_type=ft.KeyboardType.NUMBER,
@@ -123,7 +231,7 @@ def view(page: ft.Page):
 
     # Результат
     result_octane = ft.TextField(
-        width=200,
+        width=180,
         hint_text="Октановое число",
         suffix=ft.Text("ОЧ"),
         keyboard_type=ft.KeyboardType.NUMBER,
@@ -132,7 +240,7 @@ def view(page: ft.Page):
         read_only=True,
     )
     result_volume = ft.TextField(
-        width=200,
+        width=180,
         hint_text="Объем топлива",
         suffix=ft.Text("л"),
         keyboard_type=ft.KeyboardType.NUMBER,
@@ -142,17 +250,39 @@ def view(page: ft.Page):
     )
 
     def calculate_mixture(e):
-        """Рассчитывает смесь топлива"""
+        """Рассчитывает смесь топлива и сохраняет в историю"""
         try:
-            # Получаем значения
-            octane_tank = float(tank_octane.value) if tank_octane.value else 0
-            volume_tank = float(tank_volume.value) if tank_volume.value else 0
+            # Получаем значения для топлива в баке (если чекбокс активен)
+            if tank_checkbox.value:
+                octane_tank = float(tank_octane.value) if tank_octane.value else 0
+                volume_tank = float(tank_volume.value) if tank_volume.value else 0
+                fuel_tank_type = tank_fuel_type.value if tank_fuel_type.value else "Не выбран"
+                fuel_tank_azs = tank_azs.value if tank_azs.value else "Не выбрана"
+            else:
+                octane_tank = 0
+                volume_tank = 0
+                fuel_tank_type = "Не выбран"
+                fuel_tank_azs = "Не выбрана"
 
             octane_1 = float(fuel1_octane.value) if fuel1_octane.value else 0
             volume_1 = float(fuel1_volume.value) if fuel1_volume.value else 0
+            fuel1_type_value = fuel1_type.value if fuel1_type.value else "Не выбран"
+            fuel1_azs_value = fuel1_azs.value if fuel1_azs.value else "Не выбрана"
 
             octane_2 = float(fuel2_octane.value) if fuel2_octane.value else 0
             volume_2 = float(fuel2_volume.value) if fuel2_volume.value else 0
+            fuel2_type_value = fuel2_type.value if fuel2_type.value else "Не выбран"
+            fuel2_azs_value = fuel2_azs.value if fuel2_azs.value else "Не выбрана"
+
+            # Проверяем, что есть хоть какое-то топливо
+            if not tank_checkbox.value and volume_1 == 0 and volume_2 == 0:
+                page.snack_bar = ft.SnackBar(
+                    ft.Text("Добавьте объем топлива хотя бы в одну заправку!"),
+                    bgcolor=ft.Colors.RED,
+                )
+                page.snack_bar.open = True
+                page.update()
+                return
 
             # Рассчитываем общий объем
             total_volume = volume_tank + volume_1 + volume_2
@@ -168,10 +298,45 @@ def view(page: ft.Page):
                 result_octane.value = f"{avg_octane:.1f}"
                 result_volume.value = f"{total_volume:.1f}"
 
-                page.snack_bar = ft.SnackBar(
-                    ft.Text("Расчет выполнен успешно!"),
-                    bgcolor=ft.Colors.GREEN,
-                )
+                # Сохраняем в историю
+                history_record = {
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "fuels": {
+                        "tank": {
+                            "azs": fuel_tank_azs,
+                            "type": fuel_tank_type,
+                            "octane": octane_tank,
+                            "volume": volume_tank
+                        },
+                        "fuel1": {
+                            "azs": fuel1_azs_value,
+                            "type": fuel1_type_value,
+                            "octane": octane_1,
+                            "volume": volume_1
+                        },
+                        "fuel2": {
+                            "azs": fuel2_azs_value,
+                            "type": fuel2_type_value,
+                            "octane": octane_2,
+                            "volume": volume_2
+                        }
+                    },
+                    "result": {
+                        "octane": f"{avg_octane:.1f}",
+                        "volume": f"{total_volume:.1f}"
+                    }
+                }
+
+                if add_history_record(history_record):
+                    page.snack_bar = ft.SnackBar(
+                        ft.Text("Расчет выполнен успешно! История сохранена."),
+                        bgcolor=ft.Colors.GREEN,
+                    )
+                else:
+                    page.snack_bar = ft.SnackBar(
+                        ft.Text("Расчет выполнен, но история не сохранена!"),
+                        bgcolor=ft.Colors.ORANGE,
+                    )
             else:
                 page.snack_bar = ft.SnackBar(
                     ft.Text("Добавьте объем топлива!"),
@@ -191,18 +356,23 @@ def view(page: ft.Page):
 
     def clear_fields(e):
         """Очищает все поля"""
+        tank_checkbox.value = False
+        tank_container.visible = False
         tank_azs.value = None
         tank_fuel_type.value = None
+        tank_fuel_type.options = []
         tank_octane.value = ""
         tank_volume.value = ""
 
         fuel1_azs.value = None
         fuel1_type.value = None
+        fuel1_type.options = []
         fuel1_octane.value = ""
         fuel1_volume.value = ""
 
         fuel2_azs.value = None
         fuel2_type.value = None
+        fuel2_type.options = []
         fuel2_octane.value = ""
         fuel2_volume.value = ""
 
@@ -243,38 +413,23 @@ def view(page: ft.Page):
                     ],
                 ),
 
+                # Топливо в баке с чекбоксом
                 ft.Row(
                     alignment=ft.MainAxisAlignment.CENTER,
                     spacing=10,
                     controls=[
-                        # Топливо в баке
                         ft.Text(
                             "Топливо в баке",
                             size=15,
                             weight=ft.FontWeight.BOLD,
                         ),
-                        ft.Checkbox(),
-                    ],
-                ),
-                ft.Row(
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    spacing=10,
-                    controls=[
-                        tank_azs,
-                        tank_fuel_type,
+                        tank_checkbox,
                     ],
                 ),
 
-                ft.Row(
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    spacing=10,
-                    controls=[
-                        tank_octane,
-                        tank_volume,
-                    ],
-                ),
+                # Контейнер с полями для топлива в баке (скрыт по умолчанию)
+                tank_container,
 
-                # Разделитель
                 ft.Container(height=5),
 
                 # Топливо для заправки №1
@@ -283,7 +438,6 @@ def view(page: ft.Page):
                     size=15,
                     weight=ft.FontWeight.BOLD,
                 ),
-
                 ft.Row(
                     alignment=ft.MainAxisAlignment.CENTER,
                     spacing=10,
@@ -292,7 +446,6 @@ def view(page: ft.Page):
                         fuel1_type,
                     ],
                 ),
-
                 ft.Row(
                     alignment=ft.MainAxisAlignment.CENTER,
                     spacing=10,
@@ -302,7 +455,6 @@ def view(page: ft.Page):
                     ],
                 ),
 
-                # Разделитель
                 ft.Container(height=5),
 
                 # Топливо для заправки №2
@@ -311,7 +463,6 @@ def view(page: ft.Page):
                     size=15,
                     weight=ft.FontWeight.BOLD,
                 ),
-
                 ft.Row(
                     alignment=ft.MainAxisAlignment.CENTER,
                     spacing=10,
@@ -320,7 +471,6 @@ def view(page: ft.Page):
                         fuel2_type,
                     ],
                 ),
-
                 ft.Row(
                     alignment=ft.MainAxisAlignment.CENTER,
                     spacing=10,
@@ -330,7 +480,6 @@ def view(page: ft.Page):
                     ],
                 ),
 
-                # Разделитель
                 ft.Container(height=10),
 
                 # Результат
@@ -339,7 +488,6 @@ def view(page: ft.Page):
                     size=18,
                     weight=ft.FontWeight.BOLD,
                 ),
-
                 ft.Row(
                     alignment=ft.MainAxisAlignment.CENTER,
                     spacing=10,
