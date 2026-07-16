@@ -9,6 +9,8 @@ from widgets.navigationPanel import navigation_panel
 from theme import current_theme, toggle_theme  # импортируем из theme.py
 
 def main(page: ft.Page):
+    root_dir = os.path.dirname(os.path.abspath(__file__))
+    page.window.icon = os.path.join(root_dir, "logo.ico")
     page.title = "FuelMix"
     page.theme_mode = current_theme  # используем глобальную тему
     page.padding = 0
