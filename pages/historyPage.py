@@ -44,7 +44,6 @@ def view(page: ft.Page):
                                 controls=[
                                     ft.Icon(ft.Icons.HISTORY, size=50, color=ft.Colors.GREY_400),
                                     ft.Text("История пуста", size=18, weight=ft.FontWeight.BOLD),
-                                    ft.Text("Выполните расчет на главной странице", size=14, color=ft.Colors.GREY_400),
                                 ]
                             )
                         )
