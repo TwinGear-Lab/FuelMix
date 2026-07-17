@@ -1,1 +1,83 @@
-[]
+[
+    {
+        "timestamp": "2026-07-17 13:04:16",
+        "fuels": {
+            "tank": {
+                "azs": "Shell",
+                "type": "FuelSave 95",
+                "octane": 95.0,
+                "volume": 12.2
+            },
+            "fuel1": {
+                "azs": "Трасса",
+                "type": "АИ-95",
+                "octane": 95.0,
+                "volume": 5.0
+            },
+            "fuel2": {
+                "azs": "IRBIS",
+                "type": "АИ-92",
+                "octane": 92.0,
+                "volume": 0
+            }
+        },
+        "result": {
+            "octane": "95.0",
+            "volume": "17.2"
+        }
+    },
+    {
+        "timestamp": "2026-07-17 13:03:59",
+        "fuels": {
+            "tank": {
+                "azs": "Не выбрана",
+                "type": "Не выбран",
+                "octane": 0,
+                "volume": 0
+            },
+            "fuel1": {
+                "azs": "Трасса",
+                "type": "АИ-95",
+                "octane": 95.0,
+                "volume": 5.0
+            },
+            "fuel2": {
+                "azs": "IRBIS",
+                "type": "АИ-92",
+                "octane": 92.0,
+                "volume": 0
+            }
+        },
+        "result": {
+            "octane": "95.0",
+            "volume": "5.0"
+        }
+    },
+    {
+        "timestamp": "2026-07-17 12:44:20",
+        "fuels": {
+            "tank": {
+                "azs": "Не выбрана",
+                "type": "Не выбран",
+                "octane": 12.0,
+                "volume": 21.0
+            },
+            "fuel1": {
+                "azs": "Трасса",
+                "type": "Не выбран",
+                "octane": 0,
+                "volume": 0
+            },
+            "fuel2": {
+                "azs": "ННК",
+                "type": "Не выбран",
+                "octane": 0,
+                "volume": 0
+            }
+        },
+        "result": {
+            "octane": "12.0",
+            "volume": "21.0"
+        }
+    }
+]

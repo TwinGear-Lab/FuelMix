@@ -5,41 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Реклама</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background-color: #000000;
+            background: #1a1a1a;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             flex-direction: column;
             font-family: Arial, sans-serif;
-            padding: 10px;
+            padding: 20px;
         }
         #ad-container {
             width: 100%;
-            max-width: 500px;
-            min-height: 400px;
+            max-width: 728px;
+            min-height: 200px;
             display: flex;
             justify-content: center;
             align-items: center;
-            background: #1a1a1a;
+            background: #2a2a2a;
             border-radius: 16px;
-            padding: 10px;
-            position: relative;
+            padding: 20px;
         }
-        #loader {
-            color: #666;
+        .loader {
+            color: #888;
             font-size: 14px;
             text-align: center;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
         }
         .loader-spinner {
             border: 3px solid #333;
@@ -56,41 +47,28 @@
         }
         #close-btn {
             margin-top: 20px;
-            padding: 14px 50px;
+            padding: 12px 40px;
             background: #4CAF50;
             color: white;
             border: none;
-            border-radius: 30px;
-            font-size: 18px;
-            font-weight: bold;
+            border-radius: 25px;
+            font-size: 16px;
             cursor: pointer;
             display: none;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-            transition: all 0.3s;
-            touch-action: manipulation;
-        }
-        #close-btn:active {
-            transform: scale(0.95);
         }
         #close-btn:hover {
             background: #45a049;
         }
-        /* Контейнер для рекламы Яндекса */
-        #yandex_ad {
-            width: 100%;
-            min-height: 300px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        /* Адаптация под темную тему */
-        .yandex-ad {
-            color: #fff;
-        }
-        /* Скрываем стандартные рамки */
         iframe {
             border: none !important;
             max-width: 100% !important;
+        }
+        /* Адаптация для мобильных */
+        @media (max-width: 600px) {
+            #ad-container {
+                min-height: 150px;
+                padding: 10px;
+            }
         }
     </style>
 </head>
@@ -100,11 +78,9 @@
             <div class="loader-spinner"></div>
             <span>Загрузка рекламы...</span>
         </div>
-        <div id="yandex_ad">
-            <!-- Сюда Яндекс вставит рекламу -->
-        </div>
+        <div id="yandex_ad"></div>
     </div>
-    <button id="close-btn">Продолжить →</button>
+    <button id="close-btn" onclick="window.close()">Закрыть</button>
 
     <!-- ===== ВАШ КОД ЯНДЕКС.РТБ ===== -->
     <script>
@@ -114,48 +90,36 @@
 
     <script>
         window.yaContextCb.push(() => {
-            Ya.Context.AdvManager.render({
-                "blockId": "R-A-19606376-1",
-                "type": "fullscreen",
-                "platform": "touch",
-                "onRender": function() {
-                    // Реклама отрендерилась — убираем лоадер и показываем кнопку
-                    document.getElementById('loader').style.display = 'none';
-                    document.getElementById('close-btn').style.display = 'block';
-                }
-            });
+            try {
+                Ya.Context.AdvManager.render({
+                    "blockId": "R-A-19606832-1",
+                    "type": "fullscreen",
+                    "platform": "touch",
+                    "onRender": function() {
+                        // Реклама загружена
+                        document.getElementById('loader').style.display = 'none';
+                        document.getElementById('close-btn').style.display = 'block';
+                        console.log('Реклама успешно загружена!');
+                    }
+                });
+            } catch(e) {
+                console.error('Ошибка рендеринга:', e);
+                document.getElementById('loader').innerHTML = '<span style="color:#ff6b6b;">Реклама временно недоступна</span>';
+                document.getElementById('close-btn').style.display = 'block';
+            }
         });
 
-        // Запасной вариант: если реклама не загрузилась через 5 секунд,
-        // всё равно показываем кнопку
+        // Запасной таймер на случай, если реклама не загрузилась через 7 секунд
         setTimeout(function() {
             var loader = document.getElementById('loader');
             var btn = document.getElementById('close-btn');
-            if (btn.style.display !== 'block') {
+            if (btn && btn.style.display !== 'block') {
                 if (loader) {
-                    loader.innerHTML = '<span style="color:#888;">Реклама не загрузилась</span>';
+                    loader.innerHTML = '<span style="color:#ff6b6b;">Реклама не загрузилась, попробуйте позже</span>';
                 }
                 btn.style.display = 'block';
             }
-        }, 8000);
-
-        // Обработчик для закрытия через JavaScript-мост (для Flet)
-        window.closeAd = function() {
-            // Этот вызов будет перехвачен Flet
-            if (window.flet && window.flet.closeAd) {
-                window.flet.closeAd();
-            }
-        };
-
-        // При клике на кнопку закрытия
-        document.getElementById('close-btn').addEventListener('click', function() {
-            if (window.flet && window.flet.closeAd) {
-                window.flet.closeAd();
-            } else {
-                // Если мост не работает - просто сообщаем
-                console.log('Реклама закрыта');
-            }
-        });
+        }, 7000);
     </script>
 </body>
 </html>
