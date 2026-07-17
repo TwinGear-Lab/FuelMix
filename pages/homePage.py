@@ -9,6 +9,54 @@ import os
 DATA_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dataAGS.json")
 
 
+class RealNumberInputFilter(ft.InputFilter):
+    """Фильтр для ввода чисел с плавающей точкой"""
+
+    def __init__(self, allow_negative=False, max_decimals=3):
+        self.allow_negative = allow_negative
+        self.max_decimals = max_decimals
+        # Передаем regex_string в конструктор
+        super().__init__(
+            regex_string=r"^[0-9]*\.?[0-9]*$",
+            allow=True
+        )
+
+    def filter(self, value: str) -> str:
+        if not value:
+            return value
+
+        # Разрешенные символы
+        allowed_chars = '0123456789.'
+        if self.allow_negative:
+            allowed_chars += '-'
+
+        # Фильтруем
+        filtered = ''.join(c for c in value if c in allowed_chars)
+
+        # Обработка отрицательных чисел
+        if self.allow_negative:
+            # '-' только в начале
+            if filtered and filtered[0] != '-' and '-' in filtered:
+                filtered = filtered.replace('-', '')
+            if filtered and filtered[0] == '-':
+                filtered = '-' + filtered[1:].replace('-', '')
+        else:
+            filtered = filtered.replace('-', '')
+
+        # Обработка десятичной точки
+        if filtered.count('.') > 1:
+            parts = filtered.split('.')
+            filtered = parts[0] + '.' + ''.join(parts[1:])
+
+        # Ограничение знаков после запятой
+        if self.max_decimals is not None and '.' in filtered:
+            int_part, dec_part = filtered.split('.')
+            dec_part = dec_part[:self.max_decimals]
+            filtered = f"{int_part}.{dec_part}"
+
+        return filtered
+
+
 def view(page: ft.Page):
     # Загружаем данные АЗС
     data_ags = {}
@@ -21,6 +69,9 @@ def view(page: ft.Page):
                 gas_stations_rf = list(data_ags.keys())
     except Exception as e:
         print(f"Ошибка загрузки данных АЗС: {e}")
+
+    # Создаем фильтр для чисел
+    real_filter = RealNumberInputFilter(allow_negative=False, max_decimals=3)
 
     # Функция для обновления списка топлива при выборе АЗС
     def update_fuel_types(e, dropdown_azs, dropdown_fuel, octane_field):
@@ -77,7 +128,6 @@ def view(page: ft.Page):
         visible=False,
         content=ft.Column(
             controls=[
-                # Исправлено: теперь как у заправок - Row с двумя Dropdown
                 ft.Row(
                     controls=[
                         tank_azs := ft.Dropdown(
@@ -102,16 +152,16 @@ def view(page: ft.Page):
                             hint_text="Октановое число",
                             suffix=ft.Text("ОЧ"),
                             keyboard_type=ft.KeyboardType.NUMBER,
-                            input_filter=ft.NumbersOnlyInputFilter(),
                             filled=True,
+                            input_filter=real_filter,
                         ),
                         tank_volume := ft.TextField(
                             expand=True,
                             hint_text="Объем топлива",
                             suffix=ft.Text("л"),
                             keyboard_type=ft.KeyboardType.NUMBER,
-                            input_filter=ft.NumbersOnlyInputFilter(),
                             filled=True,
+                            input_filter=real_filter,
                         ),
                     ],
                     spacing=10,
@@ -165,7 +215,6 @@ def view(page: ft.Page):
                         hint_text="Октановое число",
                         suffix=ft.Text("ОЧ"),
                         keyboard_type=ft.KeyboardType.NUMBER,
-                        input_filter=ft.NumbersOnlyInputFilter(),
                         filled=True,
                         read_only=True,
                     ),
@@ -174,8 +223,8 @@ def view(page: ft.Page):
                         hint_text="Объем топлива",
                         suffix=ft.Text("л"),
                         keyboard_type=ft.KeyboardType.NUMBER,
-                        input_filter=ft.NumbersOnlyInputFilter(),
                         filled=True,
+                        input_filter=real_filter,
                     ),
                 ],
                 spacing=10,
@@ -227,7 +276,6 @@ def view(page: ft.Page):
                         hint_text="Октановое число",
                         suffix=ft.Text("ОЧ"),
                         keyboard_type=ft.KeyboardType.NUMBER,
-                        input_filter=ft.NumbersOnlyInputFilter(),
                         filled=True,
                         read_only=True,
                     ),
@@ -236,8 +284,8 @@ def view(page: ft.Page):
                         hint_text="Объем топлива",
                         suffix=ft.Text("л"),
                         keyboard_type=ft.KeyboardType.NUMBER,
-                        input_filter=ft.NumbersOnlyInputFilter(),
                         filled=True,
+                        input_filter=real_filter,
                     ),
                 ],
                 spacing=10,
@@ -268,7 +316,6 @@ def view(page: ft.Page):
         hint_text="Октановое число",
         suffix=ft.Text("ОЧ"),
         keyboard_type=ft.KeyboardType.NUMBER,
-        input_filter=ft.NumbersOnlyInputFilter(),
         filled=True,
         read_only=True,
     )
@@ -277,7 +324,6 @@ def view(page: ft.Page):
         hint_text="Объем топлива",
         suffix=ft.Text("л"),
         keyboard_type=ft.KeyboardType.NUMBER,
-        input_filter=ft.NumbersOnlyInputFilter(),
         filled=True,
         read_only=True,
     )

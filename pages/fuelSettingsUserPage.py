@@ -6,6 +6,53 @@ import os
 DATA_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dataAGS.json")
 
 
+class RealNumberInputFilter(ft.InputFilter):
+    """Фильтр для ввода чисел с плавающей точкой"""
+
+    def __init__(self, allow_negative=False, max_decimals=3):
+        self.allow_negative = allow_negative
+        self.max_decimals = max_decimals
+        # Передаем regex_string в конструктор
+        super().__init__(
+            regex_string=r"^[0-9]*\.?[0-9]*$",
+            allow=True
+        )
+
+    def filter(self, value: str) -> str:
+        if not value:
+            return value
+
+        # Разрешенные символы
+        allowed_chars = '0123456789.'
+        if self.allow_negative:
+            allowed_chars += '-'
+
+        # Фильтруем
+        filtered = ''.join(c for c in value if c in allowed_chars)
+
+        # Обработка отрицательных чисел
+        if self.allow_negative:
+            # '-' только в начале
+            if filtered and filtered[0] != '-' and '-' in filtered:
+                filtered = filtered.replace('-', '')
+            if filtered and filtered[0] == '-':
+                filtered = '-' + filtered[1:].replace('-', '')
+        else:
+            filtered = filtered.replace('-', '')
+
+        # Обработка десятичной точки
+        if filtered.count('.') > 1:
+            parts = filtered.split('.')
+            filtered = parts[0] + '.' + ''.join(parts[1:])
+
+        # Ограничение знаков после запятой
+        if self.max_decimals is not None and '.' in filtered:
+            int_part, dec_part = filtered.split('.')
+            dec_part = dec_part[:self.max_decimals]
+            filtered = f"{int_part}.{dec_part}"
+
+        return filtered
+
 def load_data():
     """Загружает данные из JSON файла"""
     try:
@@ -38,6 +85,9 @@ def view(page: ft.Page):
     # Получаем список АЗС
     gas_stations_rf = list(data.keys())
     print(f"Найдено АЗС: {gas_stations_rf}")
+
+    # Создаем фильтр для чисел
+    real_filter = RealNumberInputFilter(allow_negative=False, max_decimals=3)
 
     # Контейнер для отображения выбранной АЗС
     selected_station_container = ft.Container()
@@ -147,6 +197,7 @@ def view(page: ft.Page):
             keyboard_type=ft.KeyboardType.NUMBER,
             dense=True,
             height=40,
+            input_filter=real_filter,  # Добавляем фильтр
         )
 
         def save_fuel_change(e):
@@ -247,7 +298,7 @@ def view(page: ft.Page):
                     page.update()
 
         return ft.Container(
-            padding=5,  # Изменено: просто число вместо symmetric
+            padding=5,
             content=ft.Row(
                 controls=[
                     ft.Text(fuel_name, expand=True, size=14, weight=ft.FontWeight.W_500),
@@ -481,9 +532,9 @@ def view(page: ft.Page):
         )
         fuel_octane_field = ft.TextField(
             label="Октановое число",
-            hint_text="Например: 95",
+            hint_text="Например: 95.5",
             keyboard_type=ft.KeyboardType.NUMBER,
-            input_filter=ft.NumbersOnlyInputFilter(),
+            input_filter=real_filter,  # Используем фильтр вместо NumbersOnlyInputFilter
             width=150,
         )
 
