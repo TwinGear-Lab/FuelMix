@@ -1,6 +1,5 @@
 import os
 import flet as ft
-import flet_ads as fta
 from pages import homePage
 from pages import historyPage
 from pages import fuelSettingsUserPage
