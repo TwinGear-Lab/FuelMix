@@ -1,21 +1,27 @@
 [project]
-name = "fuelmix"
+name = "FuelMix"
 version = "1.0.0"
-description = "FuelMix"
+description = "A Flet application with ads"
+requires-python = ">=3.9"
+dependencies = [
+    "flet",
+    "flet-ads",  # <--- Зависимость для Python
+]
 
 [tool.flet]
-# Точка входа приложения
-app.module = "main"
-# Каталог с ассетами — совпадает с assets_dir, который передаётся в ft.run()
-app.path = "."
-
-# Отображаемое имя приложения (используется как имя .exe и заголовок в проводнике)
+org = "com.yourcompany"
 product = "FuelMix"
-org = "com.fuelmix"
-company = "FuelMix"
 
-# Иконка приложения. Flet сгенерирует из неё .ico со всеми нужными размерами
-# и встроит его в exe при сборке — именно это заставляет иконку отображаться
-# и на самом приложении, и на ярлыке, который на него указывает.
-[tool.flet.windows]
-icon = "images/logo.png"
+# КРИТИЧНО: Указываем Flutter-пакет flet_ads для сборки
+[tool.flet.flutter]
+dependencies = [
+    "flet_ads"  # <--- Flutter-плагин для рекламы
+]
+
+# Для Android: передаем тестовый Application ID
+[tool.flet.android.meta_data]
+"com.google.android.gms.ads.APPLICATION_ID" = "ca-app-pub-3940256099942544~3347511713"  # Тестовый ID
+
+# Добавляем разрешение для рекламного ID (решает проблемы с загрузкой)
+[tool.flet.android.permission]
+"com.google.android.gms.permission.AD_ID" = true
