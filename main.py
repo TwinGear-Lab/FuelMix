@@ -1,36 +1,31 @@
 import os
 import flet as ft
-from pages import homePage
-from pages import historyPage
-from pages import fuelSettingsUserPage
-from pages import mapFuelPage
-from pages import userPage
+from flet_webview import WebView
+from pages import homePage, historyPage, fuelSettingsUserPage, mapFuelPage, userPage
 from widgets.navigationPanel import navigation_panel
 from theme import current_theme, toggle_theme
+import asyncio
 
-# Тестовые Ad Unit ID для Android и iOS
-TEST_IDS = {
-    ft.PagePlatform.ANDROID: {
-        "interstitial": "ca-app-pub-3940256099942544/1033173712",
-    },
-    ft.PagePlatform.IOS: {
-        "interstitial": "ca-app-pub-3940256099942544/4411468910",
-    },
-}
+# Глобальные переменные для управления рекламой
+ad_shown = False
+ad_container = None
+ad_closed = False
 
 
 def main(page: ft.Page):
+    global ad_shown, ad_container, ad_closed
+
     page.title = "FuelMix"
     page.theme_mode = current_theme
     page.padding = 40
     page.spacing = 0
 
-    # Создаем контейнер для основного контента
+    # Контейнер для основного контента
     content = ft.Container(expand=True)
     page.navigation_bar = navigation_panel(page, 0)
     page.add(content)
 
-    # --- Функция смены страниц ---
+    # --- Смена страниц ---
     def change_page(index: int):
         if index == 0:
             content.content = homePage.view(page)
@@ -39,8 +34,6 @@ def main(page: ft.Page):
         elif index == 2:
             content.content = fuelSettingsUserPage.view(page)
         elif index == 3:
-            content.content = None
-            page.update()
             content.content = mapFuelPage.view(page)
         elif index == 4:
             content.content = userPage.view(page)
@@ -48,87 +41,115 @@ def main(page: ft.Page):
         page.navigation_bar.selected_index = index
         page.update()
 
-    # --- Функция для смены темы ---
+    # --- Смена темы ---
     def change_theme():
         toggle_theme(page)
 
-    # --- Логика показа рекламы ---
+    # --- Закрытие рекламы ---
+    def close_ad(e=None):
+        global ad_shown, ad_container, ad_closed
+        ad_closed = True
+        ad_shown = True
 
-    # Переменная для хранения объекта рекламы и флага, что она показана
-    interstitial_ad = None
-    ad_shown = False
+        if ad_container and ad_container in page.overlay:
+            page.overlay.remove(ad_container)
+            ad_container = None
+        page.update()
 
-    def get_interstitial_ad():
-        """Создает и возвращает новый объект InterstitialAd."""
-        unit_id = TEST_IDS.get(page.platform, {}).get("interstitial")
-        if not unit_id:
-            print("Реклама не поддерживается на этой платформе")
-            return None
+    def on_webview_error(e):
+        """Ошибка загрузки WebView"""
+        print(f"Ошибка WebView: {e}")
+        # В случае ошибки закрываем рекламу через 2 секунды
+        async def close_after_error():
+            await asyncio.sleep(2)
+            close_ad(None)
+        page.run_task(close_after_error)
 
-        # Определяем обработчики событий рекламы
-        def on_ad_load(e):
-            print("Реклама загружена")
-            # Автоматически показываем, как только загрузилась
-            page.run_task(interstitial_ad.show)
-
-        def on_ad_error(e):
-            nonlocal ad_shown
-            print(f"Ошибка загрузки рекламы: {e.data}")
-            ad_shown = True
-
-        def on_ad_close(e):
-            nonlocal ad_shown, interstitial_ad
-            print("Реклама закрыта")
-            ad_shown = True
-            # Удаляем старую рекламу из оверлея
-            if interstitial_ad in page.overlay:
-                page.overlay.remove(interstitial_ad)
-            page.update()
-
-        return fta.InterstitialAd(
-            unit_id=unit_id,
-            on_load=on_ad_load,
-            on_error=on_ad_error,
-            on_open=lambda e: print("Реклама открыта"),
-            on_close=on_ad_close,
-            on_impression=lambda e: print("Показ рекламы засчитан"),
-            on_click=lambda e: print("Клик по рекламе"),
-        )
-
-    def show_interstitial_ad():
-        """Пытается создать и показать межстраничную рекламу."""
-        nonlocal ad_shown, interstitial_ad
+    # --- Показ рекламы Яндекса ---
+    def show_yandex_ad():
+        global ad_shown, ad_container, ad_closed
 
         if ad_shown:
-            print("Реклама уже была показана в этом сеансе")
+            print("Реклама уже показана")
             return
 
-        # Создаем новый экземпляр
-        interstitial_ad = get_interstitial_ad()
-        if not interstitial_ad:
+        # Путь к HTML файлу
+        assets_dir = os.path.join(os.path.dirname(__file__), "assets")
+        ad_html_path = os.path.join(assets_dir, "ad_yandex.html")
+
+        # Проверяем существует ли файл
+        if not os.path.exists(ad_html_path):
+            print(f"Файл рекламы не найден: {ad_html_path}")
+            ad_shown = True  # Чтобы не пытаться снова
             return
 
-        # Добавляем рекламный объект в оверлей страницы
-        page.overlay.append(interstitial_ad)
+        # Создаем WebView
+        webview = WebView(
+            url=ad_html_path,
+            expand=True,
+            on_web_resource_error=on_webview_error,
+        )
+
+        # Контейнер для WebView (затемнение фона)
+        ad_container = ft.Container(
+            content=ft.Column(
+                controls=[
+                    webview,
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
+            expand=True,
+            bgcolor=ft.Colors.BLACK,
+            padding=10,
+        )
+
+        # Добавляем в оверлей
+        page.overlay.append(ad_container)
         page.update()
-        # Реклама начнет загружаться автоматически
 
-    # --- Сохраняем функции ---
+        # Автозакрытие через 15 секунд (максимальное время показа)
+        async def auto_close():
+            global ad_closed
+            await asyncio.sleep(15)
+            if not ad_closed:
+                print("Автозакрытие рекламы")
+                close_ad(None)
+
+        page.run_task(auto_close)
+
+        # Ждем загрузки WebView и пытаемся внедрить JavaScript-мост
+        async def setup_js_bridge():
+            await asyncio.sleep(1)
+            try:
+                # Внедряем функцию для закрытия из JavaScript
+                webview.evaluate_javascript("""
+                    window.flet = {
+                        closeAd: function() {
+                            console.log('JS: закрыть рекламу');
+                        }
+                    };
+                    console.log('JS bridge установлен');
+                """)
+            except Exception as e:
+                print(f"Ошибка внедрения JS: {e}")
+
+        page.run_task(setup_js_bridge)
+
+    # --- Сохраняем функции в page ---
     page.change_page = change_page
     page.change_theme = change_theme
+    page.show_yandex_ad = show_yandex_ad
+    page.close_ad = close_ad
 
-    # Загружаем начальную страницу
+    # Загружаем главную страницу
     change_page(0)
 
-    # ✅ ПОКАЗЫВАЕМ РЕКЛАМУ СРАЗУ ПОСЛЕ ЗАГРУЗКИ СТРАНИЦЫ
-    # Небольшая задержка в 0.5 секунды, чтобы страница успела отрисоваться
-    async def show_ad_immediately():
-        import asyncio
-        await asyncio.sleep(0.5)  # Небольшая задержка для отрисовки UI
-        show_interstitial_ad()
+    # --- ПОКАЗ РЕКЛАМЫ ПРИ ЗАПУСКЕ ---
+    async def show_ad_on_start():
+        await asyncio.sleep(1.5)  # Даем UI отрисоваться
+        show_yandex_ad()
 
-    page.run_task(show_ad_immediately)
+    page.run_task(show_ad_on_start)
 
-print("ww")
 
 ft.run(main, assets_dir="images")
