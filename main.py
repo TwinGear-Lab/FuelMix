@@ -22,7 +22,7 @@ TEST_IDS = {
 def main(page: ft.Page):
     page.title = "FuelMix"
     page.theme_mode = current_theme
-    page.padding = 0
+    page.padding = 40
     page.spacing = 0
 
     # Создаем контейнер для основного контента
