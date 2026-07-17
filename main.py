@@ -130,6 +130,6 @@ def main(page: ft.Page):
 
     page.run_task(show_ad_immediately)
 
-#
+print("ww")
 
 ft.run(main, assets_dir="images")
