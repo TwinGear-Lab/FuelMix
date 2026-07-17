@@ -3,11 +3,6 @@ import flet as ft
 from pages import homePage, historyPage, fuelSettingsUserPage, mapFuelPage, userPage
 from widgets.navigationPanel import navigation_panel
 from theme import current_theme, toggle_theme
-import asyncio
-import webbrowser
-
-# Глобальные переменные
-AD_URL = "https://illustrious-alpaca-8832e4.netlify.app/"
 
 
 def main(page: ft.Page):
@@ -55,31 +50,12 @@ def main(page: ft.Page):
     def change_theme():
         toggle_theme(page)
 
-    # --- Открытие рекламы в браузере ---
-    def open_ad_in_browser():
-        """Открывает страницу с рекламой в браузере"""
-        webbrowser.open(AD_URL)
-        print(f"Открываем рекламу: {AD_URL}")
-
-    # --- Показ рекламы при входе ---
-    def show_ad_on_start():
-        """Показывает рекламу при входе в приложение"""
-        async def show_with_delay():
-            await asyncio.sleep(1.5)
-            open_ad_in_browser()
-        page.run_task(show_with_delay)
-
     # --- Сохраняем функции ---
     page.change_page = change_page
     page.change_theme = change_theme
-    page.open_ad_in_browser = open_ad_in_browser
-    page.show_ad_on_start = show_ad_on_start
 
     # Загружаем главную страницу
     change_page(0)
-
-    # --- ПОКАЗЫВАЕМ РЕКЛАМУ ПРИ ВХОДЕ ---
-    show_ad_on_start()
 
 
 ft.run(main, assets_dir="images")

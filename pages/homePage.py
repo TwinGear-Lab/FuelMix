@@ -4,7 +4,6 @@ from datetime import datetime
 from history_storage import add_history_record
 from theme import constrain_width
 import os
-import asyncio
 
 # Путь к файлу с данными (как в fuelSettingsUserPage)
 DATA_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dataAGS.json")
@@ -417,13 +416,6 @@ def view(page: ft.Page):
                         ft.Text("Расчет выполнен, но история не сохранена!"),
                         bgcolor=ft.Colors.ORANGE,
                     )
-
-                # ✅ ПОКАЗЫВАЕМ РЕКЛАМУ ПОСЛЕ УСПЕШНОГО РАСЧЕТА
-                if hasattr(page, 'open_ad_in_browser'):
-                    async def show_ad_after_calc():
-                        await asyncio.sleep(0.5)  # Небольшая задержка
-                        page.open_ad_in_browser()
-                    page.run_task(show_ad_after_calc)
             else:
                 page.snack_bar = ft.SnackBar(
                     ft.Text("Добавьте объем топлива!"),
